@@ -1,57 +1,60 @@
-import React, {useState} from 'react'
-import {HighlightArea} from '@loginote/types'
-import translate from 'google-translate-api'
+import React, { useState, useEffect } from 'react'
+import ApiClient from '../core/api_client'
+import { Sentence, SentenceId } from '@loginote/types'
 
 interface SentenceViewerProps {
-    sentence: string
-    data: HighlightArea
+    sentenceId: SentenceId
 }
 
-const SentenceViewer: React.FC<SentenceViewerProps> = ({ sentence, data }) => {
-    const [translation, setTranslateion] = useState<string>('')
+const SentenceViewer: React.FC<SentenceViewerProps> = ({ sentenceId }) => {
+    const [sentence, setSentence] = useState<Sentence | null>(null)
 
-    translate(sentence, {to: 'zh'}).then(res => {
-        setTranslateion(res.text)
-    })
+    useEffect(() => {
+        ApiClient.getSentence(sentenceId)
+            .then(setSentence)
+            .catch(error => console.error('Error fetching sentence:', error))
+    }, [sentenceId])
 
-    const addSentenceToNotebook = async () => {
-        try {
-            if (translation === '') {
-                throw new Error('Cannot add an untranslated sentence into the notebook. since this may suggest there would be something wrong in the sentence')
-            }
-            const response = await fetch('/api/sentences/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    sentence,
-                    translation,
-                    data,
-                }),
-            })
+    const highlightWords = (content: string, words: string[]) => {
+        let highlightedContent = content
+        words.forEach(word => {
+            const highlight = `<span style="background-color: yellow;">${word}</span>`
+            highlightedContent = highlightedContent.replace(
+                new RegExp(`\\b${word}\\b`, 'gi'),
+                highlight
+            )
+        })
+        return { __html: highlightedContent }
+    }
 
-            if (!response.ok) {
-                throw new Error('Failed to add sentence to notebook')
-            }
-
-            await response.json()
-        } catch (error: any) {
-            console.error('Error adding sentence to notebook:', error)
-        }
+    if (!sentence) {
+        return <div>Loading...</div>
     }
 
     return (
         <div>
+            <h3>Sentence</h3>
+            <p
+                dangerouslySetInnerHTML={highlightWords(
+                    sentence.content,
+                    sentence.words
+                )}
+            ></p>
             <p>
-                <strong>Sentence:</strong> {sentence}
+                <strong>Translation:</strong> {sentence.translation}
             </p>
-            <p>
-                <strong>Translation:</strong> {translation}
-            </p>
-            <button onClick={addSentenceToNotebook}>
-                Add Sentence to Notebook
-            </button>
+            {sentence.words.length > 0 && (
+                <p>
+                    <strong>Words:</strong> {sentence.words.join(', ')}
+                </p>
+            )}
+            {sentence.source && (
+                <div>
+                    <p>
+                        <strong>Source:</strong> {/* 展示来源信息 */}
+                    </p>
+                </div>
+            )}
         </div>
     )
 }

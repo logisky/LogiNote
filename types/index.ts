@@ -70,6 +70,7 @@ export interface Sentence {
     id: SentenceId
     content: string
     translation: string
+    words: string[]
     source?: Source
 }
 
