@@ -5,6 +5,15 @@ export interface VocabularyNode {
     references: SentenceId[]
 }
 
+export interface DailyProgress {
+    date: string
+    newWords: string[]
+    sentences: SentenceId[]
+    updatedSetIds: number[]
+    goodExprIds: number[]
+    articles: string[]
+}
+
 // Raw information of a vocabulary. Used in getting the raw data
 export interface Vocabulary {
     word: string
@@ -48,10 +57,11 @@ export type MeansLikeId = number
 export interface VocabularySet {
     setId: number
     words: string[]
-    name: string
+    description: string
 }
 
 export interface GoodExpression {
+    goodExpId: number
     words: string[]
     references: SentenceId
 }
