@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
-import PDFViewer from './pdf-viewer'
-import FileSelector from './file-selector'
+import PDFViewer from './components/pdf-viewer'
+import Sidebar from './components/sidebar'
 
 const App: React.FC = () => {
     const [fileUrl, setFileUrl] = useState<string>('')
 
     return (
         <div className="App">
-            <FileSelector onFileSelected={setFileUrl} />
+            <Sidebar onFileSelected={setFileUrl} />
             {fileUrl && <PDFViewer fileUrl={fileUrl} />}
         </div>
     )
