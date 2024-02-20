@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { DataFetcher } from '../core/data'
-import { Vocabulary, Phonetic, Meaning, Definition } from '../core/types'
+import { Vocabulary, Phonetic, Meaning, Definition } from '@loginote/types'
 
 interface VocabularyViewerProps {
     word: string

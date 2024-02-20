@@ -1,4 +1,4 @@
-import { Vocabulary } from './types'
+import { Vocabulary } from '@loginote/types'
 
 interface WordInfo {
     word: string
@@ -39,7 +39,7 @@ export class DataFetcher {
         }
 
         const data: Vocabulary[] = await resp.json()
-        if (data.length == 0) return null
+        if (data.length === 0) return null
         return data[0] as Vocabulary
     }
 

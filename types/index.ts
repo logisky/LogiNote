@@ -1,24 +1,6 @@
-import { HighlightArea } from '@react-pdf-viewer/highlight'
-
-export enum PartOfSpeech {
-    Noun,
-    Verb,
-    Adjective,
-    Adverb,
-    Pronoun,
-    Preposition,
-    Conjunction,
-    Determiner,
-    Interjection,
-}
-
 export interface VocabularyNode {
+    vid: number
     vocubulary: Vocabulary
-
-    // relationship
-    spellsLike: SpelledLikeId[]
-    meansLike: MeansLikeId[]
-    antonyms: string[]
 
     references: SentenceId[]
 }
@@ -59,12 +41,19 @@ export interface SpelledLike {
 }
 
 export type SentenceId = string
+export type PartOfSpeech = string
 export type SpelledLikeId = number
 export type MeansLikeId = number
 
+export interface VocabularySet {
+    setId: number
+    words: string[]
+    name: string
+}
+
 export interface GoodExpression {
     words: string[]
-    references: SentenceId[]
+    references: SentenceId
 }
 
 export interface Sentence {
@@ -77,4 +66,13 @@ export interface Sentence {
 export interface Source {
     filePath: string
     highlightArea?: HighlightArea
+}
+
+// Copy from @react-pdf-viewer
+export interface HighlightArea {
+    height: number
+    left: number
+    pageIndex: number
+    top: number
+    width: number
 }
