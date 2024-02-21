@@ -12,6 +12,14 @@ export interface DailyProgress {
     articles: string[]
 }
 
+export interface TotalProgress {
+    dateList: string[]
+    words: number
+    sentences: number
+    sets: number
+    articles: number
+}
+
 // Raw information of a vocabulary. Used in getting the raw data
 export interface Vocabulary {
     word: string

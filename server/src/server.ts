@@ -72,6 +72,13 @@ app.get('/daily_progresses/:date', async (req, res) => {
         : res.status(404).json({ message: 'Daily progress not found' })
 })
 
+app.get('/daily_progress', async (req, res) => {
+    const total = await dataManager.getTotalProgress()
+    total
+        ? res.json(total)
+        : res.status(404).json({ message: 'Daily progress not found' })
+})
+
 app.get('/vocabulary_nodes/:word', async (req, res) => {
     const { word } = req.params
     const node = await dataManager.getVocabularyNode(word)

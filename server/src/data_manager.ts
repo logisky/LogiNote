@@ -8,8 +8,10 @@ import {
     RootLogiNote,
     SentenceId,
     VocabularyNode,
+    TotalProgress,
 } from '@loginote/types'
 import fs from 'fs'
+import fsp from 'fs/promises'
 import path from 'path'
 
 const SUB_DIRECTORIES = [
@@ -54,6 +56,44 @@ class DataManager {
                 err_msg: `Failed to open the directory: ${this.noteDirectory}, error: ${error}`,
             }
             return result
+        }
+    }
+
+    public async getTotalProgress(): Promise<TotalProgress | null> {
+        try {
+            const directoryPath = path.join(
+                this.noteDirectory,
+                'daily_progresses'
+            )
+            // 读取daily_progresses目录下的所有文件
+            const files = await fsp.readdir(directoryPath)
+            const total: TotalProgress = {
+                dateList: [],
+                words: 0,
+                sentences: 0,
+                sets: 0,
+                articles: 0,
+            }
+            const dates = []
+
+            for (const file of files) {
+                const filePath = path.join(directoryPath, file)
+                const content = await fsp.readFile(filePath, 'utf8')
+                const progress: DailyProgress = JSON.parse(content)
+
+                total.articles += progress.articles.length
+                total.sets += progress.updatedSetIds.length
+                total.sentences += progress.sentences.length
+                total.words += progress.sentences.length
+
+                dates.push(progress.date)
+            }
+
+            total.dateList = dates
+            return total
+        } catch (error) {
+            console.error('Error summarizing daily progresses:', error)
+            return null
         }
     }
 

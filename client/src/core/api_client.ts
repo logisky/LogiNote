@@ -5,6 +5,7 @@ import {
     Vocabulary,
     VocabularyNode,
     VocabularySet,
+    TotalProgress,
 } from '@loginote/types'
 
 class ApiClient {
@@ -44,6 +45,10 @@ class ApiClient {
 
     static async getVocabularyNode(word: string): Promise<VocabularyNode> {
         return this.makeRequest(`/vocabulary_nodes/${word}`, 'GET')
+    }
+
+    static async getTotalProgress(): Promise<TotalProgress | null> {
+        return this.makeRequest('/daily_progress', 'GET')
     }
 
     static async makeRequest<T>(
