@@ -7,8 +7,19 @@
         "server",
         "types"
     ],
+    "type": "module",
     "scripts": {
         "build": "npm run build --workspaces",
-        "test": "npm run test --workspaces"
+        "test": "npm run test --workspaces",
+        "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron main.js",
+        "electron-pack": "npm run build && electron-builder --dir",
+        "postinstall": "electron-builder install-app-deps"
+    },
+    "dependencies": {
+        "electron": "^29.0.0",
+        "electron-is-dev": "^3.0.1"
+    },
+    "devDependencies": {
+        "electron-builder": "^24.12.0"
     }
 }
