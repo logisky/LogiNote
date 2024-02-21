@@ -1,7 +1,5 @@
 export interface VocabularyNode {
-    vid: number
-    vocubulary: Vocabulary
-
+    word: string
     references: SentenceId[]
 }
 
@@ -38,18 +36,12 @@ export interface Definition {
     antonyms: string[]
 }
 
-export interface MeansLike {
-    id: MeansLikeId
-    words: string[]
-    partOfSpeech: PartOfSpeech
-}
-
 export interface SpelledLike {
     id: SpelledLikeId
     words: string[]
 }
 
-export type SentenceId = string
+export type SentenceId = number
 export type PartOfSpeech = string
 export type SpelledLikeId = number
 export type MeansLikeId = number
@@ -86,4 +78,23 @@ export interface HighlightArea {
     pageIndex: number
     top: number
     width: number
+}
+
+export interface NotebookMetadata {
+    words: number
+    days: number
+    files: number
+    sentences: number
+    vocabularySets: number
+    createdDate: string
+}
+
+export interface ErrorMessage {
+    err_msg: string
+}
+
+export interface RootLogiNote {
+    createdDate: string
+    sentenceId: number
+    setId: number
 }

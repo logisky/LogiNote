@@ -81,7 +81,7 @@ class ApiClient {
             )
     }
 
-    static async getSentence(sentenceId: string): Promise<Sentence> {
+    static async getSentence(sentenceId: SentenceId): Promise<Sentence> {
         return fetch(`${BASE_URL}/sentences/${sentenceId}`)
             .then(response => response.json())
             .catch(error => console.error('Error fetching sentence:', error))
