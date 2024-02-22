@@ -1,12 +1,42 @@
 import React, { useEffect, useState } from 'react'
 import { DataFetcher } from '../core/data'
-import { Vocabulary, Phonetic, Meaning, Definition } from '@loginote/types'
+import { Vocabulary } from '@loginote/types'
+import {
+    Button,
+    Card,
+    CardContent,
+    Typography,
+    makeStyles,
+} from '@material-ui/core'
+import ApiClient from '../core/api_client'
 
 interface VocabularyViewerProps {
     word: string
+    wordAddedToNote: () => void
 }
 
-const VocabularyViewer: React.FC<VocabularyViewerProps> = ({ word }) => {
+const useStyles = makeStyles({
+    card: {
+        minWidth: 275,
+        margin: '20px',
+        position: 'absolute',
+        right: 0,
+        top: '10%',
+        zIndex: 100,
+    },
+    title: {
+        fontSize: 14,
+    },
+    pos: {
+        marginBottom: 12,
+    },
+})
+
+const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
+    word,
+    wordAddedToNote,
+}) => {
+    const classes = useStyles()
     const [vocabulary, setVocabulary] = useState<Vocabulary | null>(null)
 
     useEffect(() => {
@@ -20,83 +50,71 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({ word }) => {
                 )
         }
     }, [word])
+    if (!vocabulary) {
+        return <h1>Cannot check the vocabulary, please check your network</h1>
+    }
+
+    const handleSubmit = () => {
+        ApiClient.postVocabulary(vocabulary)
+        wordAddedToNote()
+    }
 
     return (
-        vocabulary && (
-            <div>
-                <h2>{vocabulary.word}</h2>
-                <div>
-                    <h3>Phonetics:</h3>
-                    {vocabulary.phonetics.length > 0 &&
-                        vocabulary.phonetics.map(
-                            (phonetic: Phonetic, index: number) => (
-                                <div key={index}>
-                                    <p>{phonetic.text}</p>
-                                    {phonetic.audio && (
-                                        <audio controls src={phonetic.audio}>
-                                            Your browser does not support the
-                                            audio element.
-                                        </audio>
+        <Card className={classes.card}>
+            <CardContent>
+                <Typography variant="h5" component="h2">
+                    {vocabulary.word}
+                </Typography>
+                {vocabulary.phonetics.map((phonetic, index) => (
+                    <Typography
+                        key={index}
+                        className={classes.pos}
+                        color="textSecondary"
+                    >
+                        {phonetic.text}
+                        {phonetic.audio && (
+                            <audio src={phonetic.audio} controls />
+                        )}
+                    </Typography>
+                ))}
+                {vocabulary.meanings.map((meaning, index) => (
+                    <div key={index}>
+                        <Typography variant="body2" component="p">
+                            {meaning.partOfSpeech}
+                            {meaning.definitions.map((def, defIndex) => (
+                                <div key={defIndex}>
+                                    <Typography paragraph>
+                                        {def.definition}
+                                    </Typography>
+                                    {def.example && (
+                                        <Typography
+                                            paragraph
+                                        >{`Example: ${def.example}`}</Typography>
+                                    )}
+                                    {def.synonyms && (
+                                        <Typography
+                                            paragraph
+                                        >{`Synonyms: ${def.synonyms.join(', ')}`}</Typography>
                                     )}
                                 </div>
-                            )
-                        )}
-                </div>
-                <div>
-                    <h3>Meanings:</h3>
-                    {vocabulary.meanings.length > 0 &&
-                        vocabulary.meanings.map(
-                            (meaning: Meaning, index: number) => (
-                                <div key={index}>
-                                    {meaning.definitions.map(
-                                        (
-                                            definition: Definition,
-                                            defIndex: number
-                                        ) => (
-                                            <div key={defIndex}>
-                                                <p>
-                                                    <b>Definition:</b>{' '}
-                                                    {definition.definition}
-                                                </p>
-                                                {definition.expample && (
-                                                    <p>
-                                                        <b>Example:</b>{' '}
-                                                        {definition.expample}
-                                                    </p>
-                                                )}
-                                                {definition.synonyms.length >
-                                                    0 && (
-                                                    <p>
-                                                        <b>Synonyms:</b>{' '}
-                                                        {definition.synonyms.join(
-                                                            ', '
-                                                        )}
-                                                    </p>
-                                                )}
-                                                {definition.antonyms.length >
-                                                    0 && (
-                                                    <p>
-                                                        <b>Antonyms:</b>{' '}
-                                                        {definition.antonyms.join(
-                                                            ', '
-                                                        )}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-                            )
-                        )}
-                </div>
-                {vocabulary.spelledLike.length > 0 && (
-                    <div>
-                        <h3>Spelled Like:</h3>
-                        <p>{vocabulary.spelledLike.join(', ')}</p>
+                            ))}
+                        </Typography>
                     </div>
+                ))}
+                {vocabulary.spelledLike.length > 0 && (
+                    <Typography variant="body2" component="p">
+                        Similar Spellings: {vocabulary.spelledLike.join(', ')}
+                    </Typography>
                 )}
-            </div>
-        )
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSubmit}
+                >
+                    Add to your note
+                </Button>
+            </CardContent>
+        </Card>
     )
 }
 

@@ -1,58 +1,150 @@
-import React, {useState} from 'react'
-import {HighlightArea} from '@loginote/types'
+import { HighlightArea, Sentence } from '@loginote/types'
+import React, { useState } from 'react'
+import { TextField, Button, Chip, makeStyles, Grid } from '@material-ui/core'
 import translate from 'google-translate-api'
+import ApiClient from '../core/api_client'
+import VocabularyViewer from './vocabulary-viewer'
 
 interface HighlightSentenceViewerProps {
+    fileName: string
     sentence: string
-    data: HighlightArea
+    data: HighlightArea[]
+    // Notifier
+    onChange: () => void
 }
 
-const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({ sentence, data }) => {
-    const [translation, setTranslateion] = useState<string>('')
+const useSentenceStyles = makeStyles({
+    root: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '20px',
+        marginTop: '20px',
+    },
+    inputHover: {
+        '&:hover': {
+            backgroundColor: '#f5f5f5',
+        },
+    },
+    selectedWord: {
+        backgroundColor: '#aed581',
+    },
+})
 
-    translate(sentence, {to: 'zh'}).then(res => {
-        setTranslateion(res.text)
-    })
+const useContainerStyles = makeStyles({
+    root: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+    },
+    viewer: {
+        marginLeft: '20px', // Add some space between the components
+    },
+})
 
-    const addSentenceToNotebook = async () => {
-        try {
-            if (translation === '') {
-                throw new Error('Cannot add an untranslated sentence into the notebook. since this may suggest there would be something wrong in the sentence')
-            }
-            const response = await fetch('/api/sentences/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    sentence,
-                    translation,
-                    data,
-                }),
-            })
+const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
+    sentence,
+    data,
+    fileName,
+    onChange,
+}) => {
+    const classes = useSentenceStyles()
+    const containerClasses = useContainerStyles()
+    const [selectedWord, setSelectedWord] = useState<string | null>(null)
+    const [editedSentence, setEditedSentence] = useState(sentence)
+    const [editedTranslation, setEditedTranslation] = useState<string>('')
+    const [words, setWords] = useState<string[]>([])
+    const [addedWords, setAddedWords] = useState<string[]>([])
 
-            if (!response.ok) {
-                throw new Error('Failed to add sentence to notebook')
-            }
+    // translate(sentence, { to: 'zh' }).then(res => {
+    //     setEditedTranslation(res.text)
+    // })
 
-            await response.json()
-        } catch (error: any) {
-            console.error('Error adding sentence to notebook:', error)
+    const handleEditedSentence = (value: string) => {
+        setEditedSentence(value)
+        const words = value.split(' ')
+        setWords(words)
+    }
+
+    const handleWordClick = (word: string) => {
+        setSelectedWord(word)
+    }
+
+    const handleSubmit = () => {
+        const sentence: Sentence = {
+            id: -1,
+            content: editedSentence,
+            translation: editedTranslation,
+            words: addedWords,
+            source: { filePath: fileName, highlightAreas: data },
         }
+        ApiClient.postSentence(sentence).then(() => {
+            onChange()
+        })
+    }
+
+    const wordAddedToNote = (): void => {
+        if (selectedWord) setAddedWords([...addedWords, selectedWord])
     }
 
     return (
-        <div>
-            <p>
-                <strong>Sentence:</strong> {sentence}
-            </p>
-            <p>
-                <strong>Translation:</strong> {translation}
-            </p>
-            <button onClick={addSentenceToNotebook}>
-                Add Sentence to Notebook
-            </button>
-        </div>
+        <Grid container className={containerClasses.root}>
+            <Grid item>
+                <div className={classes.root}>
+                    <TextField
+                        value={editedSentence}
+                        onChange={e => handleEditedSentence(e.target.value)}
+                        variant="outlined"
+                        fullWidth
+                        InputProps={{
+                            className: classes.inputHover,
+                        }}
+                        placeholder="Edit the sentence"
+                        multiline
+                    />
+                    <TextField
+                        value={editedTranslation}
+                        onChange={e => setEditedTranslation(e.target.value)}
+                        variant="outlined"
+                        fullWidth
+                        InputProps={{
+                            className: classes.inputHover,
+                        }}
+                        placeholder="Edit the translation"
+                        multiline
+                    />
+                    <div>
+                        {words.map((word, index) => (
+                            <Chip
+                                key={index}
+                                label={word}
+                                onClick={() => handleWordClick(word)}
+                                className={
+                                    selectedWord === word
+                                        ? classes.selectedWord
+                                        : ''
+                                }
+                            />
+                        ))}
+                    </div>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSubmit}
+                    >
+                        Add to your note
+                    </Button>
+                </div>
+            </Grid>
+            <Grid item className={containerClasses.viewer}>
+                {selectedWord && (
+                    <VocabularyViewer
+                        word={selectedWord}
+                        wordAddedToNote={wordAddedToNote}
+                    ></VocabularyViewer>
+                )}
+            </Grid>
+        </Grid>
     )
 }
 

@@ -39,12 +39,13 @@ export interface Phonetic {
 }
 
 export interface Meaning {
+    partOfSpeech: string
     definitions: Definition[]
 }
 
 export interface Definition {
     definition: string
-    expample: string
+    example: string
     synonyms: string[]
     antonyms: string[]
 }
@@ -81,7 +82,7 @@ export interface Sentence {
 
 export interface Source {
     filePath: string
-    highlightArea?: HighlightArea
+    highlightAreas: HighlightArea[]
 }
 
 // Copy from @react-pdf-viewer

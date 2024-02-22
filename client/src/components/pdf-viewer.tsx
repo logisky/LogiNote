@@ -22,12 +22,12 @@ import '@react-pdf-viewer/default-layout/lib/styles/index.css'
 import { useParams } from 'react-router-dom'
 import ApiClient from '../core/api_client'
 import { Grid, Paper, Typography, makeStyles } from '@material-ui/core'
+import HighlightSentenceViewer from './highlight-sentence-viewer'
 
-interface Note {
+interface SentenceBrief {
     id: number
     content: string
     highlightAreas: HighlightArea[]
-    quote: string
 }
 
 const useStyles = makeStyles(theme => ({
@@ -62,7 +62,7 @@ const PdfViewer: React.FC = () => {
     if (!filePath) throw Error('invalid file path when opening PDF file')
 
     const [message, setMessage] = React.useState('')
-    const [notes, setNotes] = React.useState<Note[]>([])
+    const [notes, setNotes] = React.useState<SentenceBrief[]>([])
     const [pdfUrl, setPdfUrl] = React.useState<string>('')
 
     ApiClient.getFileExists(filePath).then(v => {
@@ -75,39 +75,44 @@ const PdfViewer: React.FC = () => {
     const noteEles: Map<number, HTMLElement> = new Map()
     const classes = useStyles()
 
-    const renderHighlightTarget = (props: RenderHighlightTargetProps) => (
-        <div
-            style={{
-                background: '#eee',
-                display: 'flex',
-                position: 'absolute',
-                left: `${props.selectionRegion.left}%`,
-                top: `${props.selectionRegion.top + props.selectionRegion.height}%`,
-                transform: 'translate(0, 8px)',
-                zIndex: 1,
-            }}
-        >
-            <Tooltip
-                position={Position.TopCenter}
-                target={
-                    <Button onClick={props.toggle}>
-                        <MessageIcon />
-                    </Button>
-                }
-                content={() => <div style={{ width: '100px' }}>Add a note</div>}
-                offset={{ left: 0, top: -8 }}
-            />
-        </div>
-    )
+    const sentenceChange = (): void => {}
+
+    const renderHighlightTarget = (props: RenderHighlightTargetProps) => {
+        return (
+            <div
+                style={{
+                    background: '#ffff',
+                    display: 'flex',
+                    zIndex: 100,
+                    position: 'absolute',
+                    left: `${props.selectionRegion.left - props.selectionRegion.width}%`,
+                    top: `${props.selectionRegion.top + props.selectionRegion.height}%`,
+                    overflow: 'auto',
+                    padding: '10px',
+                    border: '1px solid rgba(0, 0, 0, 0.3)',
+                    borderRadius: '4px',
+                }}
+            >
+                <HighlightSentenceViewer
+                    fileName={filePath}
+                    sentence={cleanText(props.selectedText)}
+                    data={props.highlightAreas}
+                    onChange={() => {
+                        sentenceChange()
+                        props.toggle()
+                    }}
+                ></HighlightSentenceViewer>
+            </div>
+        )
+    }
 
     const renderHighlightContent = (props: RenderHighlightContentProps) => {
         const addNote = () => {
             if (message !== '') {
-                const note: Note = {
+                const note: SentenceBrief = {
                     id: ++noteId,
                     content: message,
                     highlightAreas: props.highlightAreas,
-                    quote: props.selectedText,
                 }
                 setNotes(notes.concat([note]))
                 props.cancel()
@@ -151,7 +156,7 @@ const PdfViewer: React.FC = () => {
         )
     }
 
-    const jumpToNote = (note: Note) => {
+    const jumpToNote = (note: SentenceBrief) => {
         if (noteEles.has(note.id)) {
             noteEles.get(note.id)?.scrollIntoView()
         }
@@ -209,12 +214,6 @@ const PdfViewer: React.FC = () => {
                             }
                             elevation={1}
                         >
-                            <Typography
-                                component="blockquote"
-                                className={classes.quote}
-                            >
-                                {note.quote}
-                            </Typography>
                             <Typography variant="body2">
                                 {note.content}
                             </Typography>
@@ -240,3 +239,8 @@ const PdfViewer: React.FC = () => {
 }
 
 export default PdfViewer
+
+const cleanText = (text: string) => {
+    // 替换多个连续空格为一个空格，并且移除行首和行尾的空格
+    return text.replace(/\s+/g, ' ').trim()
+}
