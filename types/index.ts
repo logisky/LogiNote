@@ -20,6 +20,11 @@ export interface TotalProgress {
     articles: number
 }
 
+export interface FileInfo {
+    name: string
+    urlPath: string
+}
+
 // Raw information of a vocabulary. Used in getting the raw data
 export interface Vocabulary {
     word: string

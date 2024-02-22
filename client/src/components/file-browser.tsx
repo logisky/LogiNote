@@ -1,55 +1,90 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import {
+    Button,
+    Dialog,
+    DialogTitle,
+    List,
+    ListItem,
+    ListItemText,
+    DialogActions,
+    DialogContent,
+} from '@material-ui/core'
+import CloudUploadIcon from '@material-ui/icons/CloudUpload'
+import ApiClient from '../core/api_client'
+import { FileInfo } from '@loginote/types'
+import { useNavigate } from 'react-router-dom'
 
-interface CustomInputAttributes
-    extends React.InputHTMLAttributes<HTMLInputElement> {
-    webkitdirectory?: string
-    directory?: string
-}
+const FileBrowser: React.FC = () => {
+    const [open, setOpen] = useState(false)
+    const [files, setFiles] = useState<FileInfo[]>([])
+    const navigate = useNavigate()
 
-interface FileBrowserProps {
-    onFileSelected: (fileUrl: string) => void
-}
+    useEffect(() => {
+        ApiClient.getFiles()
+            .then((data: FileInfo[]) => {
+                setFiles(data)
+            })
+            .catch(error => {
+                console.error('Failed to fetch files:', error)
+            })
+    }, [])
 
-const CustomInput: React.FC<CustomInputAttributes> = props => {
-    return <input {...props} />
-}
+    const handleClickOpen = () => {
+        setOpen(true)
+    }
 
-const FileBrowser: React.FC<FileBrowserProps> = ({ onFileSelected }) => {
-    const [files, setFiles] = useState<File[]>([])
+    const handleClose = () => {
+        setOpen(false)
+    }
 
-    const handleDirectoryChange = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        if (event.target.files) {
-            const fileArray = Array.from(event.target.files).filter(
-                file => file.type === 'application/pdf'
-            )
-            setFiles(fileArray)
-            onFileSelected('')
-        }
+    const handleFileClick = (fileName: FileInfo) => {
+        navigate(`/pdf-viewer/${encodeURIComponent(fileName.name)}`)
+    }
+
+    const handleUploadClick = async () => {
+        const path =
+            await window.electron.ipcRenderer.invoke('select-file-dialog')
+        console.log(path)
+        const result = await window.electron.ipcRenderer.invoke(
+            'upload-file',
+            path
+        )
+        navigate(`/pdf-viewer/${encodeURIComponent(result)}`)
     }
 
     return (
         <div>
-            <CustomInput
-                type="file"
-                webkitdirectory="true"
-                directory="true"
-                onChange={handleDirectoryChange}
-                style={{ marginBottom: '10px' }}
-            />
-            <div>
-                {files.map((file, index) => (
-                    <div
-                        key={index}
-                        onClick={() =>
-                            onFileSelected(URL.createObjectURL(file))
-                        }
-                    >
-                        {file.name}
-                    </div>
-                ))}
-            </div>
+            <Button
+                variant="outlined"
+                onClick={handleClickOpen}
+                startIcon={<CloudUploadIcon />}
+            >
+                +
+            </Button>
+            <Dialog fullWidth maxWidth="sm" onClose={handleClose} open={open}>
+                <DialogTitle>Files</DialogTitle>
+                <DialogContent>
+                    <List>
+                        {files.map((file, index) => (
+                            <ListItem
+                                button
+                                onClick={() => handleFileClick(file)}
+                                key={index}
+                            >
+                                <ListItemText primary={file.name} />
+                            </ListItem>
+                        ))}
+                    </List>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleUploadClick} color="primary">
+                        Upload
+                    </Button>
+                    <Button onClick={handleClose} color="secondary">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     )
 }

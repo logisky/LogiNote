@@ -6,12 +6,15 @@ import {
     VocabularyNode,
     VocabularySet,
     TotalProgress,
+    FileInfo,
 } from '@loginote/types'
 
 class ApiClient {
     static BASE_URL = 'http://localhost:3001'
 
-    static async openDirectory(directoryPath: string) {
+    static async openDirectory(
+        directoryPath: string
+    ): Promise<TotalProgress | null> {
         return this.makeRequest('/open', 'POST', { directoryPath })
     }
 
@@ -51,12 +54,31 @@ class ApiClient {
         return this.makeRequest('/daily_progress', 'GET')
     }
 
+    static async getFiles(): Promise<FileInfo[]> {
+        return this.makeRequest('/files', 'GET')
+    }
+
+    static async getFile(name: string): Promise<Blob | void> {
+        return fetch(`${this.BASE_URL}/file/${name}`, {
+            headers: {
+                'Content-Type': 'application/pdf',
+            },
+        })
+            .then(response => response.blob())
+            .catch(error => console.error('Error fetching PDF', error))
+    }
+
+    static async getFileExists(file: string): Promise<boolean> {
+        return this.makeRequest(`/exists/${file}`, 'GET')
+    }
+
     static async makeRequest<T>(
         path: string,
         method: string,
         body: any = null
     ): Promise<T> {
         try {
+            console.log(`${this.BASE_URL}${path}}`)
             const response = await fetch(`${this.BASE_URL}${path}`, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
@@ -67,6 +89,10 @@ class ApiClient {
             console.error(`Error with the request to ${path}:`, error)
             throw error
         }
+    }
+
+    static getFilePath(p: string): string {
+        return `${this.BASE_URL}/file/${p}`
     }
 }
 

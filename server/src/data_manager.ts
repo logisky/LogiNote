@@ -9,8 +9,9 @@ import {
     SentenceId,
     VocabularyNode,
     TotalProgress,
+    FileInfo,
 } from '@loginote/types'
-import fs from 'fs'
+import fs, { ReadStream } from 'fs'
 import fsp from 'fs/promises'
 import path from 'path'
 
@@ -40,9 +41,11 @@ class DataManager {
         articles: new Set<string>(),
     }
 
-    public async setNoteDirectory(
-        dir: string
-    ): Promise<NotebookMetadata | ErrorMessage> {
+    public getUploadPath(): string {
+        return path.join(this.noteDirectory, 'files')
+    }
+
+    public async setNoteDirectory(dir: string): Promise<TotalProgress | null> {
         this.noteDirectory = dir
         const loginoteFilePath = path.join(this.noteDirectory, '.loginote')
 
@@ -50,12 +53,25 @@ class DataManager {
             if (!fs.existsSync(loginoteFilePath)) {
                 await this.initializeDirectories()
             }
-            return this.getNotebookMetadata()
+            return this.getTotalProgress()
         } catch (error) {
-            const result: ErrorMessage = {
-                err_msg: `Failed to open the directory: ${this.noteDirectory}, error: ${error}`,
-            }
-            return result
+            console.error(error)
+            return null
+        }
+    }
+
+    public async getFiles(): Promise<FileInfo[]> {
+        try {
+            const directoryPath = path.join(this.noteDirectory, 'files')
+            console.log(directoryPath)
+            const files = await fsp.readdir(directoryPath)
+            return files
+                .filter(f => f.endsWith('.pdf'))
+                .map(f => {
+                    return { name: f, urlPath: path.join(directoryPath, f) }
+                })
+        } catch (error) {
+            return []
         }
     }
 
@@ -65,7 +81,6 @@ class DataManager {
                 this.noteDirectory,
                 'daily_progresses'
             )
-            // 读取daily_progresses目录下的所有文件
             const files = await fsp.readdir(directoryPath)
             const total: TotalProgress = {
                 dateList: [],
@@ -95,47 +110,6 @@ class DataManager {
             console.error('Error summarizing daily progresses:', error)
             return null
         }
-    }
-
-    private async getNotebookMetadata(): Promise<NotebookMetadata> {
-        const data = await this.loadData<RootLogiNote>('.', '.loginote')
-        if (data) this.loginote = data
-
-        const metadata: NotebookMetadata = {
-            words: 0,
-            files: 0,
-            days: 0,
-            sentences: 0,
-            vocabularySets: 0,
-            createdDate: data?.createdDate ?? '',
-        }
-
-        for (const dir of SUB_DIRECTORIES) {
-            const dirPath = path.join(this.noteDirectory, dir)
-            if (fs.existsSync(dirPath)) {
-                const files = await fs.promises.readdir(dirPath)
-                switch (dir) {
-                    case 'vocabularies':
-                        metadata.words = files.length
-                        break
-                    case 'files':
-                        metadata.files = files.length
-                        break
-                    case 'sentences':
-                        metadata.sentences = files.length
-                        break
-                    case 'daily_progresses':
-                        metadata.days = files.length
-                        break
-                    case 'vocabulary_sets':
-                        metadata.vocabularySets = files.length
-                        break
-                    default:
-                }
-            }
-        }
-
-        return metadata
     }
 
     private async flushNote(): Promise<void> {
@@ -209,8 +183,17 @@ class DataManager {
         return this.saveData('files', name, file)
     }
 
-    async getFile(name: string): Promise<Buffer | null> {
-        return this.loadData<Buffer>('files', name)
+    getFile(name: string): ReadStream | null {
+        const filePath = path.join(this.noteDirectory, 'files', `${name}`)
+        if (fs.existsSync(filePath)) {
+            return fs.createReadStream(filePath)
+        }
+        return null
+    }
+
+    getFileExists(name: string): boolean {
+        const filePath = path.join(this.noteDirectory, 'files', `${name}`)
+        return fs.existsSync(filePath)
     }
 
     async postVocabulary(vocabulary: Vocabulary): Promise<boolean> {

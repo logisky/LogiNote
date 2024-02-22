@@ -1,19 +1,41 @@
 import express from 'express'
+import cors from 'cors'
 import DataManager from './data_manager'
+import multer from 'multer'
 
 const app = express()
 const port = 3001
 
 app.use(express.json())
+app.use(
+    cors({
+        origin: 'http://localhost:3000',
+    })
+)
 
 const dataManager = new DataManager()
+
+const fileStorage = multer.diskStorage({
+    destination: (_req, _file, callback) => {
+        const path = dataManager.getUploadPath()
+        callback(null, path)
+    },
+    filename: (_req, file, callback) => {
+        const fileName = file.originalname
+        callback(null, fileName)
+    },
+})
+
+const upload = multer({ storage: fileStorage })
 
 app.post('/open', async (req, res) => {
     const { directoryPath } = req.body
     const result = await dataManager.setNoteDirectory(directoryPath)
 
-    if ('err_msg' in result) {
-        res.status(500).json(result)
+    if (!result) {
+        res.status(500).json({
+            err_mst: `Cannot open the directory: ${directoryPath}`,
+        })
     } else {
         res.json(result)
     }
@@ -72,7 +94,7 @@ app.get('/daily_progresses/:date', async (req, res) => {
         : res.status(404).json({ message: 'Daily progress not found' })
 })
 
-app.get('/daily_progress', async (req, res) => {
+app.get('/daily_progress', async (_, res) => {
     const total = await dataManager.getTotalProgress()
     total
         ? res.json(total)
@@ -85,6 +107,36 @@ app.get('/vocabulary_nodes/:word', async (req, res) => {
     node
         ? res.json(node)
         : res.status(404).json({ message: 'Daily progress not found' })
+})
+
+app.get('/file/:name', async (req, res) => {
+    const { name } = req.params
+    const stream = dataManager.getFile(name)
+    if (stream) {
+        res.setHeader('Content-Type', 'application/pdf')
+        stream.pipe(res)
+    } else {
+        res.status(400).send('no file')
+    }
+})
+
+app.get('/files', async (_, res) => {
+    const files = await dataManager.getFiles()
+    res.json(files)
+})
+
+app.post('/file', upload.single('file'), (req, res) => {
+    if (req.file) {
+        res.json(req.file.filename)
+    } else {
+        res.status(400).send('no file uploaded')
+    }
+})
+
+app.get('/exists/:name', async (req, res) => {
+    const { name } = req.params
+    const v = dataManager.getFileExists(name)
+    res.json(v)
 })
 
 app.listen(port, () => {

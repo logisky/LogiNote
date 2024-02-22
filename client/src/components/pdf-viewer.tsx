@@ -19,10 +19,9 @@ import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout'
 
 import '@react-pdf-viewer/core/lib/styles/index.css'
 import '@react-pdf-viewer/default-layout/lib/styles/index.css'
-
-interface PdfViewerProps {
-    fileUrl: string
-}
+import { useParams } from 'react-router-dom'
+import ApiClient from '../core/api_client'
+import { Grid, Paper, Typography, makeStyles } from '@material-ui/core'
 
 interface Note {
     id: number
@@ -31,12 +30,50 @@ interface Note {
     quote: string
 }
 
-const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl }) => {
+const useStyles = makeStyles(theme => ({
+    root: {
+        height: '100vh',
+    },
+    notesSection: {
+        borderRight: `1px solid ${theme.palette.divider}`,
+        overflow: 'auto',
+    },
+    note: {
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        cursor: 'pointer',
+        padding: theme.spacing(1),
+    },
+    quote: {
+        borderLeft: `4px solid ${theme.palette.divider}`,
+        fontSize: '0.75rem',
+        lineHeight: 1.5,
+        margin: 0,
+        marginBottom: theme.spacing(1),
+        paddingLeft: theme.spacing(1),
+        textAlign: 'justify',
+    },
+    viewerSection: {
+        overflow: 'auto',
+    },
+}))
+
+const PdfViewer: React.FC = () => {
+    const { filePath } = useParams()
+    if (!filePath) throw Error('invalid file path when opening PDF file')
+
     const [message, setMessage] = React.useState('')
     const [notes, setNotes] = React.useState<Note[]>([])
+    const [pdfUrl, setPdfUrl] = React.useState<string>('')
+
+    ApiClient.getFileExists(filePath).then(v => {
+        if (v) {
+            setPdfUrl(ApiClient.getFilePath(filePath))
+        }
+    })
     let noteId = notes.length
 
     const noteEles: Map<number, HTMLElement> = new Map()
+    const classes = useStyles()
 
     const renderHighlightTarget = (props: RenderHighlightTargetProps) => (
         <div
@@ -158,74 +195,47 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ fileUrl }) => {
     const defaultLayoutPluginInstance = defaultLayoutPlugin()
 
     return (
-        <div
-            style={{
-                border: '1px solid rgba(0, 0, 0, 0.3)',
-                display: 'flex',
-                height: '100%',
-                overflow: 'hidden',
-            }}
-        >
-            <div
-                style={{
-                    borderRight: '1px solid rgba(0, 0, 0, 0.3)',
-                    width: '25%',
-                    overflow: 'auto',
-                }}
-            >
-                {notes.length === 0 && (
-                    <div style={{ textAlign: 'center' }}>There is no note</div>
-                )}
-                {notes.map(note => {
-                    return (
-                        <div
+        <Grid container className={classes.root}>
+            <Grid item xs={3} className={classes.notesSection}>
+                {notes.length === 0 ? (
+                    <Typography align="center">There is no note</Typography>
+                ) : (
+                    notes.map(note => (
+                        <Paper
                             key={note.id}
-                            style={{
-                                borderBottom: '1px solid rgba(0, 0, 0, .3)',
-                                cursor: 'pointer',
-                                padding: '8px',
-                            }}
-                            // Jump to the associated highlight area
+                            className={classes.note}
                             onClick={() =>
                                 jumpToHighlightArea(note.highlightAreas[0])
                             }
+                            elevation={1}
                         >
-                            <blockquote
-                                style={{
-                                    borderLeft: '2px solid rgba(0, 0, 0, 0.2)',
-                                    fontSize: '.75rem',
-                                    lineHeight: 1.5,
-                                    margin: '0 0 8px 0',
-                                    paddingLeft: '8px',
-                                    textAlign: 'justify',
-                                }}
+                            <Typography
+                                component="blockquote"
+                                className={classes.quote}
                             >
                                 {note.quote}
-                            </blockquote>
-                            {note.content}
-                        </div>
-                    )
-                })}
-            </div>
-            <div
-                style={{
-                    flex: '1 1 0',
-                    overflow: 'auto',
-                }}
-            >
-                <Worker
-                    workerUrl={`https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js`}
-                >
-                    <Viewer
-                        fileUrl={fileUrl}
-                        plugins={[
-                            defaultLayoutPluginInstance,
-                            highlightPluginInstance,
-                        ]}
-                    />
+                            </Typography>
+                            <Typography variant="body2">
+                                {note.content}
+                            </Typography>
+                        </Paper>
+                    ))
+                )}
+            </Grid>
+            <Grid item xs={9} className={classes.viewerSection}>
+                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+                    {pdfUrl && (
+                        <Viewer
+                            fileUrl={pdfUrl}
+                            plugins={[
+                                defaultLayoutPluginInstance,
+                                highlightPluginInstance,
+                            ]}
+                        />
+                    )}
                 </Worker>
-            </div>
-        </div>
+            </Grid>
+        </Grid>
     )
 }
 
