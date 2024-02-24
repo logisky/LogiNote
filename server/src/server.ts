@@ -4,6 +4,7 @@ import DataManager from './data_manager'
 import multer from 'multer'
 import translte from 'baidu-translate-api'
 import { cleanText } from './clean_text'
+import { cleanText2 } from './clean_text2'
 
 const app = express()
 const port = 3001
@@ -154,7 +155,7 @@ app.post('/translate', async (req, res) => {
 
 app.post('/clean', async (req, res) => {
     const { sentence } = req.body
-    res.json(cleanText(sentence))
+    res.json(cleanText2(sentence))
 })
 
 app.listen(port, () => {

@@ -5,6 +5,7 @@ import {
     Button,
     Card,
     CardContent,
+    Modal,
     Typography,
     makeStyles,
 } from '@material-ui/core'
@@ -13,6 +14,10 @@ import ApiClient from '../core/api_client'
 interface VocabularyViewerProps {
     word: string
     wordAddedToNote: () => void
+
+    modalStyle: React.CSSProperties
+    open: boolean
+    onClose: () => void
 }
 
 const useStyles = makeStyles({
@@ -30,11 +35,19 @@ const useStyles = makeStyles({
     pos: {
         marginBottom: 12,
     },
+    modal: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 })
 
 const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
     word,
     wordAddedToNote,
+    modalStyle,
+    open,
+    onClose,
 }) => {
     const classes = useStyles()
     const [vocabulary, setVocabulary] = useState<Vocabulary | null>(null)
@@ -60,61 +73,70 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
     }
 
     return (
-        <Card className={classes.card}>
-            <CardContent>
-                <Typography variant="h5" component="h2">
-                    {vocabulary.word}
-                </Typography>
-                {vocabulary.phonetics.map((phonetic, index) => (
-                    <Typography
-                        key={index}
-                        className={classes.pos}
-                        color="textSecondary"
-                    >
-                        {phonetic.text}
-                        {phonetic.audio && (
-                            <audio src={phonetic.audio} controls />
-                        )}
+        <Modal
+            open={open}
+            onClose={onClose}
+            className={classes.modal}
+            aria-labelledby="vocabulary-modal-title"
+            aria-describedby="vocabulary-modal-description"
+        >
+            <Card className={classes.card} style={modalStyle}>
+                <CardContent>
+                    <Typography variant="h5" component="h2">
+                        {vocabulary.word}
                     </Typography>
-                ))}
-                {vocabulary.meanings.map((meaning, index) => (
-                    <div key={index}>
-                        <Typography variant="body2" component="p">
-                            {meaning.partOfSpeech}
-                            {meaning.definitions.map((def, defIndex) => (
-                                <div key={defIndex}>
-                                    <Typography paragraph>
-                                        {def.definition}
-                                    </Typography>
-                                    {def.example && (
-                                        <Typography
-                                            paragraph
-                                        >{`Example: ${def.example}`}</Typography>
-                                    )}
-                                    {def.synonyms && (
-                                        <Typography
-                                            paragraph
-                                        >{`Synonyms: ${def.synonyms.join(', ')}`}</Typography>
-                                    )}
-                                </div>
-                            ))}
+                    {vocabulary.phonetics.map((phonetic, index) => (
+                        <Typography
+                            key={index}
+                            className={classes.pos}
+                            color="textSecondary"
+                        >
+                            {phonetic.text}
+                            {phonetic.audio && (
+                                <audio src={phonetic.audio} controls />
+                            )}
                         </Typography>
-                    </div>
-                ))}
-                {vocabulary.spelledLike.length > 0 && (
-                    <Typography variant="body2" component="p">
-                        Similar Spellings: {vocabulary.spelledLike.join(', ')}
-                    </Typography>
-                )}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleSubmit}
-                >
-                    Add to your note
-                </Button>
-            </CardContent>
-        </Card>
+                    ))}
+                    {vocabulary.meanings.map((meaning, index) => (
+                        <div key={index}>
+                            <Typography variant="body2" component="p">
+                                {meaning.partOfSpeech}
+                                {meaning.definitions.map((def, defIndex) => (
+                                    <div key={defIndex}>
+                                        <Typography paragraph>
+                                            {def.definition}
+                                        </Typography>
+                                        {def.example && (
+                                            <Typography
+                                                paragraph
+                                            >{`Example: ${def.example}`}</Typography>
+                                        )}
+                                        {def.synonyms && (
+                                            <Typography
+                                                paragraph
+                                            >{`Synonyms: ${def.synonyms.join(', ')}`}</Typography>
+                                        )}
+                                    </div>
+                                ))}
+                            </Typography>
+                        </div>
+                    ))}
+                    {vocabulary.spelledLike.length > 0 && (
+                        <Typography variant="body2" component="p">
+                            Similar Spellings:{' '}
+                            {vocabulary.spelledLike.join(', ')}
+                        </Typography>
+                    )}
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSubmit}
+                    >
+                        Add to your note
+                    </Button>
+                </CardContent>
+            </Card>
+        </Modal>
     )
 }
 

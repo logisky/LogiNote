@@ -52,10 +52,10 @@ const DailyProgressViewer: React.FC<DailyProgressViewerProps> = ({ date }) => {
                 </Typography>
                 <Collapse in={open}>
                     <Typography variant="body2" component="p">
-                        New Words: {progress.newWords.length}
+                        New Words: {progress.newWords.size}
                     </Typography>
                     <List dense>
-                        {progress.newWords.map((word, index) => (
+                        {Array.from(progress.newWords).map((word, index) => (
                             <ListItem key={index}>
                                 <ListItemText primary={word} />
                             </ListItem>

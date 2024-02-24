@@ -17,12 +17,6 @@ SpellChecker.getDictionary('en-US', dictionaryPath, (err: any, result: any) => {
     }
 })
 
-export function checkSpellDebug(word: string): boolean {
-    const r = checkSpell(word)
-    console.log(`checking: ${word}, result: ${r}`)
-    return r
-}
-
 export function checkSpell(word: string): boolean {
     if (word.length === 1 && word != 'a') return false
     if (word.match(/^[A-Z]+$/)) return true

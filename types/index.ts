@@ -5,11 +5,11 @@ export interface VocabularyNode {
 
 export interface DailyProgress {
     date: string
-    newWords: string[]
-    sentences: SentenceId[]
-    updatedSetIds: number[]
-    goodExprIds: number[]
-    articles: string[]
+    newWords: Set<string>
+    sentences: Set<SentenceId>
+    updatedSetIds: Set<number>
+    goodExprIds: Set<number>
+    articles: Set<string>
 }
 
 export interface TotalProgress {

@@ -95,11 +95,12 @@ class DataManager {
                 const filePath = path.join(directoryPath, file)
                 const content = await fsp.readFile(filePath, 'utf8')
                 const progress: DailyProgress = JSON.parse(content)
+                console.log(progress)
 
-                total.articles += progress.articles.length
-                total.sets += progress.updatedSetIds.length
-                total.sentences += progress.sentences.length
-                total.words += progress.sentences.length
+                total.articles += progress.articles.size ?? 0
+                total.sets += progress.updatedSetIds.size ?? 0
+                total.sentences += progress.sentences.size ?? 0
+                total.words += progress.newWords.size ?? 0
 
                 dates.push(progress.date)
             }

@@ -1,4 +1,4 @@
-import { checkSpell, checkSpellDebug } from './dictionary'
+import { checkSpell } from './dictionary'
 
 export function cleanText(sentence: string, debug = false): string {
     console.log('before clean:')
@@ -41,7 +41,7 @@ function filter(input: string[]): string[] {
 }
 
 function tryMerge(words: string[], soft: boolean, debug = false): string[] {
-    const check = debug ? checkSpellDebug : checkSpell
+    const check = checkSpell
     let result: string[] = []
     const wrongIdx: Set<number> = new Set()
     for (let i = 0; i < words.length; i += 1) {

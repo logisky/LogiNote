@@ -1,10 +1,10 @@
 import { HighlightArea, Sentence } from '@loginote/types'
-import React, { useEffect, useState } from 'react'
+import React, { MouseEvent, useEffect, useState } from 'react'
 import { TextField, Button, Chip, makeStyles, Grid } from '@material-ui/core'
 import ApiClient from '../core/api_client'
 import VocabularyViewer from './vocabulary-viewer'
 
-interface HighlightSentenceViewerProps {
+export interface HighlightSentenceViewerProps {
     fileName: string
     sentence: string
     data: HighlightArea[]
@@ -45,35 +45,53 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
     sentence,
     data,
     fileName,
-    onChange,
 }) => {
     const classes = useSentenceStyles()
     const containerClasses = useContainerStyles()
     const [selectedWord, setSelectedWord] = useState<string | null>(null)
     const [editedSentence, setEditedSentence] = useState(sentence)
     const [editedTranslation, setEditedTranslation] = useState<string>('')
-    const [words, setWords] = useState<string[]>([])
+    const [words, setWords] = useState<string[]>(sentence.split(' '))
     const [addedWords, setAddedWords] = useState<string[]>([])
 
-    ApiClient.clean(editedSentence)
-        .then(v => {
-            setEditedSentence(v)
-            ApiClient.translate(v)
-                .then(t => setEditedTranslation(t))
-                .catch(_e => setEditedTranslation(v))
-        })
-        .catch(e => {
-            console.error(e)
-        })
+    const [showVocabulary, setShowVocabulary] = useState(false)
+    const [modalStyle, setModalStyle] = useState({})
+
+    useEffect(() => {
+        ApiClient.clean(sentence)
+            .then(v => {
+                setEditedSentence(v)
+                setWords(v.split(' '))
+                return ApiClient.translate(v)
+            })
+            .then(translation => {
+                setEditedTranslation(translation)
+            })
+            .catch(e => {
+                console.error(e)
+            })
+    }, [])
 
     const handleEditedSentence = (value: string) => {
         setEditedSentence(value)
         const words = value.split(' ')
         setWords(words)
+        setSelectedWord(null)
     }
 
-    const handleWordClick = (word: string) => {
+    const handleWordClick = (event: MouseEvent, word: string) => {
         setSelectedWord(word)
+
+        const { pageX, pageY } = event
+
+        const newModalStyle = {
+            position: 'absolute',
+            top: pageY,
+            left: pageX + 10,
+        }
+
+        setModalStyle(newModalStyle)
+        setShowVocabulary(true)
     }
 
     const handleSubmit = () => {
@@ -84,9 +102,7 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
             words: addedWords,
             source: { filePath: fileName, highlightAreas: data },
         }
-        ApiClient.postSentence(sentence).then(() => {
-            onChange()
-        })
+        ApiClient.postSentence(sentence).then(() => {})
     }
 
     const wordAddedToNote = (): void => {
@@ -124,7 +140,7 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
                             <Chip
                                 key={index}
                                 label={word}
-                                onClick={() => handleWordClick(word)}
+                                onClick={e => handleWordClick(e, word)}
                                 className={
                                     selectedWord === word
                                         ? classes.selectedWord
@@ -143,10 +159,13 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
                 </div>
             </Grid>
             <Grid item className={containerClasses.viewer}>
-                {selectedWord && (
+                {showVocabulary && selectedWord && (
                     <VocabularyViewer
                         word={selectedWord}
                         wordAddedToNote={wordAddedToNote}
+                        modalStyle={modalStyle}
+                        open={showVocabulary}
+                        onClose={() => setShowVocabulary(false)}
                     ></VocabularyViewer>
                 )}
             </Grid>

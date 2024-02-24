@@ -2,27 +2,22 @@ import * as React from 'react'
 import {
     highlightPlugin,
     HighlightArea,
-    MessageIcon,
     RenderHighlightContentProps,
     RenderHighlightsProps,
     RenderHighlightTargetProps,
 } from '@react-pdf-viewer/highlight'
-import {
-    Button,
-    Position,
-    PrimaryButton,
-    Tooltip,
-    Viewer,
-    Worker,
-} from '@react-pdf-viewer/core'
+import { Button, PrimaryButton, Viewer, Worker } from '@react-pdf-viewer/core'
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout'
 
 import '@react-pdf-viewer/core/lib/styles/index.css'
 import '@react-pdf-viewer/default-layout/lib/styles/index.css'
 import { useParams } from 'react-router-dom'
 import ApiClient from '../core/api_client'
-import { Grid, Paper, Typography, makeStyles } from '@material-ui/core'
-import HighlightSentenceViewer from './highlight-sentence-viewer'
+import { Grid, makeStyles } from '@material-ui/core'
+import { HighlightSentenceViewerProps } from './highlight-sentence-viewer'
+import { Sidebar } from './reader-sidebar'
+import { useEffect } from 'react'
+import { PageNotifier, useNotifierContext } from './reader-notifier'
 
 interface SentenceBrief {
     id: number
@@ -57,6 +52,22 @@ const useStyles = makeStyles(theme => ({
     },
 }))
 
+const HighlightActionComponent: React.FC<HighlightSentenceViewerProps> = ({
+    fileName,
+    data,
+    sentence,
+    onChange,
+}) => {
+    const { setActiveTab, setHighlightData } = useNotifierContext()
+
+    useEffect(() => {
+        setHighlightData({ fileName, data, sentence, onChange: onChange })
+        console.log('set:   ' + sentence)
+        setActiveTab('highlights')
+    }, [fileName, data, sentence, onChange, setHighlightData, setActiveTab])
+    return null
+}
+
 const PdfViewer: React.FC = () => {
     const { filePath } = useParams()
     if (!filePath) throw Error('invalid file path when opening PDF file')
@@ -79,30 +90,15 @@ const PdfViewer: React.FC = () => {
 
     const renderHighlightTarget = (props: RenderHighlightTargetProps) => {
         return (
-            <div
-                style={{
-                    background: '#ffff',
-                    display: 'flex',
-                    zIndex: 100,
-                    position: 'absolute',
-                    left: `${props.selectionRegion.left - props.selectionRegion.width}%`,
-                    top: `${props.selectionRegion.top + props.selectionRegion.height}%`,
-                    overflow: 'auto',
-                    padding: '10px',
-                    border: '1px solid rgba(0, 0, 0, 0.3)',
-                    borderRadius: '4px',
+            <HighlightActionComponent
+                fileName={filePath}
+                data={props.highlightAreas}
+                sentence={props.selectedText}
+                onChange={() => {
+                    props.toggle()
+                    sentenceChange()
                 }}
-            >
-                <HighlightSentenceViewer
-                    fileName={filePath}
-                    sentence={props.selectedText}
-                    data={props.highlightAreas}
-                    onChange={() => {
-                        sentenceChange()
-                        props.toggle()
-                    }}
-                ></HighlightSentenceViewer>
-            </div>
+            ></HighlightActionComponent>
         )
     }
 
@@ -200,41 +196,26 @@ const PdfViewer: React.FC = () => {
     const defaultLayoutPluginInstance = defaultLayoutPlugin()
 
     return (
-        <Grid container className={classes.root}>
-            <Grid item xs={3} className={classes.notesSection}>
-                {notes.length === 0 ? (
-                    <Typography align="center">There is no note</Typography>
-                ) : (
-                    notes.map(note => (
-                        <Paper
-                            key={note.id}
-                            className={classes.note}
-                            onClick={() =>
-                                jumpToHighlightArea(note.highlightAreas[0])
-                            }
-                            elevation={1}
-                        >
-                            <Typography variant="body2">
-                                {note.content}
-                            </Typography>
-                        </Paper>
-                    ))
-                )}
+        <PageNotifier>
+            <Grid container className={classes.root}>
+                <Grid item xs={3} className={classes.notesSection}>
+                    <Sidebar></Sidebar>
+                </Grid>
+                <Grid item xs={9} className={classes.viewerSection}>
+                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+                        {pdfUrl && (
+                            <Viewer
+                                fileUrl={pdfUrl}
+                                plugins={[
+                                    defaultLayoutPluginInstance,
+                                    highlightPluginInstance,
+                                ]}
+                            />
+                        )}
+                    </Worker>
+                </Grid>
             </Grid>
-            <Grid item xs={9} className={classes.viewerSection}>
-                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
-                    {pdfUrl && (
-                        <Viewer
-                            fileUrl={pdfUrl}
-                            plugins={[
-                                defaultLayoutPluginInstance,
-                                highlightPluginInstance,
-                            ]}
-                        />
-                    )}
-                </Worker>
-            </Grid>
-        </Grid>
+        </PageNotifier>
     )
 }
 
