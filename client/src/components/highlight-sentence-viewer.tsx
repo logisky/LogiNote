@@ -70,6 +70,7 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
             .catch(e => {
                 console.error(e)
             })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const handleEditedSentence = (value: string) => {

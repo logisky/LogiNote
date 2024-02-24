@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { DataFetcher } from '../core/data'
-import { Vocabulary } from '@loginote/types'
+import ApiClient from '../core/api_client'
+import { Vocabulary } from '@loginote/types' // 假设这是你的类型定义
 import {
     Button,
     Card,
@@ -8,39 +9,88 @@ import {
     Modal,
     Typography,
     makeStyles,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
+    IconButton,
+    List,
+    ListItem,
+    Box,
 } from '@material-ui/core'
-import ApiClient from '../core/api_client'
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+import CloseIcon from '@material-ui/icons/Close'
+import WordRelationsViewer from './word-relation-viewer'
 
-interface VocabularyViewerProps {
-    word: string
-    wordAddedToNote: () => void
-
-    modalStyle: React.CSSProperties
-    open: boolean
-    onClose: () => void
-}
-
-const useStyles = makeStyles({
-    card: {
-        minWidth: 275,
-        margin: '20px',
-        position: 'absolute',
-        right: 0,
-        top: '10%',
-        zIndex: 100,
-    },
-    title: {
-        fontSize: 14,
-    },
-    pos: {
-        marginBottom: 12,
-    },
+const useStyles = makeStyles(theme => ({
     modal: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'auto',
     },
-})
+    card: {
+        width: '90%',
+        maxWidth: 700,
+        overflow: 'hidden',
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+    },
+    contentScroll: {
+        maxHeight: '80vh',
+        overflowY: 'auto',
+    },
+    phoneticText: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: theme.spacing(1),
+    },
+    spelledLikeList: {
+        marginTop: theme.spacing(2),
+    },
+    errorCard: {
+        padding: theme.spacing(2),
+        maxWidth: 400,
+        textAlign: 'center',
+        margin: 'auto',
+    },
+    subtleButton: {
+        color: theme.palette.grey[600],
+        backgroundColor: theme.palette.grey[100],
+        border: `1px solid ${theme.palette.grey[300]}`,
+        '&:hover': {
+            backgroundColor: theme.palette.grey[200],
+            boxShadow: 'none',
+        },
+        boxShadow: '0 2px 2px rgba(0,0,0,0.1)',
+        textTransform: 'none',
+    },
+    closeButton: {
+        position: 'absolute',
+        right: theme.spacing(1),
+        top: theme.spacing(1),
+        color: theme.palette.grey[500],
+    },
+    modalContent: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '95%',
+        height: '95%',
+        bgcolor: 'background.paper',
+        boxShadow: '24',
+        p: 4,
+        overflow: 'auto',
+    },
+}))
+
+interface VocabularyViewerProps {
+    word: string
+    wordAddedToNote: () => void
+    modalStyle: React.CSSProperties
+    open: boolean
+    onClose: () => void
+}
 
 const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
     word,
@@ -51,6 +101,7 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
 }) => {
     const classes = useStyles()
     const [vocabulary, setVocabulary] = useState<Vocabulary | null>(null)
+    const [exporationOpen, setExporationOpen] = useState(false)
 
     useEffect(() => {
         if (word) {
@@ -63,8 +114,20 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
                 )
         }
     }, [word])
+
     if (!vocabulary) {
-        return <h1>Cannot check the vocabulary, please check your network</h1>
+        return (
+            <Modal open={open} onClose={onClose} className={classes.modal}>
+                <Card className={classes.errorCard}>
+                    <Typography variant="h6" color="error" gutterBottom>
+                        Unable to Load Vocabulary
+                    </Typography>
+                    <Typography variant="body1">
+                        Please check your network connection and try again.
+                    </Typography>
+                </Card>
+            </Modal>
+        )
     }
 
     const handleSubmit = () => {
@@ -72,71 +135,113 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
         wordAddedToNote()
     }
 
+    const handleExitExporation = () => {
+        setExporationOpen(false)
+    }
+
     return (
-        <Modal
-            open={open}
-            onClose={onClose}
-            className={classes.modal}
-            aria-labelledby="vocabulary-modal-title"
-            aria-describedby="vocabulary-modal-description"
-        >
-            <Card className={classes.card} style={modalStyle}>
-                <CardContent>
-                    <Typography variant="h5" component="h2">
-                        {vocabulary.word}
-                    </Typography>
-                    {vocabulary.phonetics.map((phonetic, index) => (
-                        <Typography
-                            key={index}
-                            className={classes.pos}
-                            color="textSecondary"
-                        >
-                            {phonetic.text}
-                            {phonetic.audio && (
-                                <audio src={phonetic.audio} controls />
-                            )}
+        <div>
+            <Modal open={open} onClose={onClose} className={classes.modal}>
+                <Card className={classes.card} style={modalStyle}>
+                    <CardContent className={classes.contentScroll}>
+                        <Typography variant="h5" component="h2" gutterBottom>
+                            {vocabulary.word}
                         </Typography>
-                    ))}
-                    {vocabulary.meanings.map((meaning, index) => (
-                        <div key={index}>
-                            <Typography variant="body2" component="p">
-                                {meaning.partOfSpeech}
-                                {meaning.definitions.map((def, defIndex) => (
-                                    <div key={defIndex}>
-                                        <Typography paragraph>
-                                            {def.definition}
-                                        </Typography>
-                                        {def.example && (
-                                            <Typography
-                                                paragraph
-                                            >{`Example: ${def.example}`}</Typography>
-                                        )}
-                                        {def.synonyms && (
-                                            <Typography
-                                                paragraph
-                                            >{`Synonyms: ${def.synonyms.join(', ')}`}</Typography>
-                                        )}
-                                    </div>
+                        {vocabulary.phonetics.map((phonetic, index) => (
+                            <div key={index} className={classes.phoneticText}>
+                                <Typography color="textSecondary">
+                                    {phonetic.text}
+                                </Typography>
+                                {phonetic.audio && (
+                                    <IconButton aria-label="play">
+                                        <audio src={phonetic.audio} controls />
+                                    </IconButton>
+                                )}
+                            </div>
+                        ))}
+                        {vocabulary.meanings.map((meaning, index) => (
+                            <Accordion key={index}>
+                                <AccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                >
+                                    <Typography>
+                                        {meaning.partOfSpeech}
+                                    </Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    {meaning.definitions.map(
+                                        (def, defIndex) => (
+                                            <div key={defIndex}>
+                                                <Typography paragraph>
+                                                    {def.definition}
+                                                </Typography>
+                                                {def.example && (
+                                                    <Typography
+                                                        paragraph
+                                                    >{`Example: ${def.example}`}</Typography>
+                                                )}
+                                                {def.synonyms.length > 0 && (
+                                                    <Typography
+                                                        paragraph
+                                                    >{`Synonyms: ${def.synonyms.join(', ')}`}</Typography>
+                                                )}
+                                                {def.antonyms.length > 0 && (
+                                                    <Typography
+                                                        paragraph
+                                                    >{`Antonyms: ${def.antonyms.join(', ')}`}</Typography>
+                                                )}
+                                            </div>
+                                        )
+                                    )}
+                                </AccordionDetails>
+                            </Accordion>
+                        ))}
+                        {vocabulary.spelledLike.length > 0 && (
+                            <List className={classes.spelledLikeList}>
+                                <Typography variant="subtitle1">
+                                    Similar Spellings:
+                                </Typography>
+                                {vocabulary.spelledLike.map((word, index) => (
+                                    <ListItem key={index}>{word}</ListItem>
                                 ))}
-                            </Typography>
-                        </div>
-                    ))}
-                    {vocabulary.spelledLike.length > 0 && (
-                        <Typography variant="body2" component="p">
-                            Similar Spellings:{' '}
-                            {vocabulary.spelledLike.join(', ')}
-                        </Typography>
-                    )}
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleSubmit}
+                            </List>
+                        )}
+                        <Button
+                            className={classes.subtleButton}
+                            onClick={() => setExporationOpen(true)}
+                        >
+                            Start exploration
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleSubmit}
+                            style={{ marginTop: 16 }}
+                        >
+                            Add to your note
+                        </Button>
+                    </CardContent>
+                </Card>
+            </Modal>
+            <Modal
+                open={exporationOpen}
+                onClose={handleExitExporation}
+                aria-labelledby="modal-title"
+                aria-describedby="modal-description"
+            >
+                <Box className={classes.modalContent}>
+                    <IconButton
+                        aria-label="close"
+                        className={classes.closeButton}
+                        onClick={handleExitExporation}
                     >
-                        Add to your note
-                    </Button>
-                </CardContent>
-            </Card>
-        </Modal>
+                        <CloseIcon />
+                    </IconButton>
+                    <h2 id="modal-title">Modal Title</h2>
+                    <WordRelationsViewer word={word}></WordRelationsViewer>
+                </Box>
+            </Modal>
+        </div>
     )
 }
 

@@ -1,6 +1,36 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ApiClient from '../core/api_client'
 import { DataSet, Edge, Network } from 'vis-network/standalone/esm/vis-network'
+import { makeStyles } from '@material-ui/core'
+
+const useStyles = makeStyles({
+    networkContainer: {
+        width: '100%',
+        height: '500px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        marginBottom: '20px',
+    },
+    wordList: {
+        listStyleType: 'none',
+        padding: 0,
+        '& li': {
+            padding: '8px 0',
+            borderBottom: '1px solid #eee',
+        },
+    },
+    actionButton: {
+        backgroundColor: '#007bff',
+        color: '#ffffff',
+        border: 'none',
+        padding: '10px 20px',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        '&:hover': {
+            backgroundColor: '#0056b3',
+        },
+    },
+})
 
 interface Node {
     id: string
@@ -8,6 +38,7 @@ interface Node {
 }
 
 const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
+    const classes = useStyles()
     const [selectedWords, setSelectedWords] = useState<string[]>([])
     const networkContainer = useRef(null)
     const network = useRef<Network | null>(null)
@@ -23,18 +54,18 @@ const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
         vocabulary?.meanings.forEach(v => {
             v.definitions.forEach(d => {
                 d.synonyms.forEach(s => {
-                    const n = {id: s, label: ''}
+                    const n = { id: s, label: '' }
                     nodes.push(n)
 
-                    const e: Edge = {from: w, to: s, color: 'green'}
+                    const e: Edge = { from: w, to: s, color: 'green' }
                     edges.push(e)
                 })
 
                 d.antonyms.forEach(s => {
-                    const n = {id: s, label: ''}
+                    const n = { id: s, label: '' }
                     nodes.push(n)
 
-                    const e: Edge = {from: w, to: s, color: 'red'}
+                    const e: Edge = { from: w, to: s, color: 'red' }
                     edges.push(e)
                 })
             })
@@ -60,7 +91,9 @@ const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
                 const nodeId = params.nodes[0]
                 const { relatedWords, relationships } = await fetchData(nodeId)
 
-                relatedWords.forEach(node => nodes.current.add({id: node.id, label: ''}))
+                relatedWords.forEach(node =>
+                    nodes.current.add({ id: node.id, label: '' })
+                )
                 relationships.forEach(rel => edges.current.add(rel))
             }
         })
@@ -88,15 +121,17 @@ const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
     return (
         <div>
             <div
-                id="mynetwork"
-                style={{ width: '600px', height: '400px' }}
+                ref={networkContainer}
+                className={classes.networkContainer}
             ></div>
-            <ul>
+            <ul className={classes.wordList}>
                 {selectedWords.map(word => (
                     <li key={word}>{word}</li>
                 ))}
             </ul>
-            <button onClick={() => {}}>Create Vocabulary Set</button>
+            <button className={classes.actionButton} onClick={() => {}}>
+                Create Vocabulary Set
+            </button>
         </div>
     )
 }
