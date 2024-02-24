@@ -1,7 +1,6 @@
 import { HighlightArea, Sentence } from '@loginote/types'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { TextField, Button, Chip, makeStyles, Grid } from '@material-ui/core'
-import translate from 'google-translate-api'
 import ApiClient from '../core/api_client'
 import VocabularyViewer from './vocabulary-viewer'
 
@@ -56,9 +55,16 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
     const [words, setWords] = useState<string[]>([])
     const [addedWords, setAddedWords] = useState<string[]>([])
 
-    // translate(sentence, { to: 'zh' }).then(res => {
-    //     setEditedTranslation(res.text)
-    // })
+    ApiClient.clean(editedSentence)
+        .then(v => {
+            setEditedSentence(v)
+            ApiClient.translate(v)
+                .then(t => setEditedTranslation(t))
+                .catch(_e => setEditedTranslation(v))
+        })
+        .catch(e => {
+            console.error(e)
+        })
 
     const handleEditedSentence = (value: string) => {
         setEditedSentence(value)

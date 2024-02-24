@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import DataManager from './data_manager'
 import multer from 'multer'
+import translte from 'baidu-translate-api'
+import { cleanText } from './clean_text'
 
 const app = express()
 const port = 3001
@@ -137,6 +139,22 @@ app.get('/exists/:name', async (req, res) => {
     const { name } = req.params
     const v = dataManager.getFileExists(name)
     res.json(v)
+})
+
+app.post('/translate', async (req, res) => {
+    const { sentence } = req.body
+    try {
+        const result = await translte(sentence, { from: 'en', to: 'zh' })
+        res.json(result.trans_result.dst)
+    } catch (error) {
+        console.error(error)
+        res.status(500).send('translate failed')
+    }
+})
+
+app.post('/clean', async (req, res) => {
+    const { sentence } = req.body
+    res.json(cleanText(sentence))
 })
 
 app.listen(port, () => {

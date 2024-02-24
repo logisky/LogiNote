@@ -95,7 +95,7 @@ const PdfViewer: React.FC = () => {
             >
                 <HighlightSentenceViewer
                     fileName={filePath}
-                    sentence={cleanText(props.selectedText)}
+                    sentence={props.selectedText}
                     data={props.highlightAreas}
                     onChange={() => {
                         sentenceChange()
@@ -239,8 +239,3 @@ const PdfViewer: React.FC = () => {
 }
 
 export default PdfViewer
-
-const cleanText = (text: string) => {
-    // 替换多个连续空格为一个空格，并且移除行首和行尾的空格
-    return text.replace(/\s+/g, ' ').trim()
-}

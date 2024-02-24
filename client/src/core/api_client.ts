@@ -72,6 +72,14 @@ class ApiClient {
         return this.makeRequest(`/exists/${file}`, 'GET')
     }
 
+    static async translate(sentence: string): Promise<string> {
+        return this.makeRequest(`/translate`, 'POST', { sentence })
+    }
+
+    static async clean(sentence: string): Promise<string> {
+        return this.makeRequest(`/clean`, 'POST', { sentence })
+    }
+
     static async makeRequest<T>(
         path: string,
         method: string,
