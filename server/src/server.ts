@@ -2,9 +2,6 @@ import express from 'express'
 import cors from 'cors'
 import DataManager from './data_manager'
 import multer from 'multer'
-import translte from 'baidu-translate-api'
-import { cleanText } from './clean_text'
-import { cleanText2 } from './clean_text2'
 
 const app = express()
 const port = 3001
@@ -145,8 +142,17 @@ app.get('/exists/:name', async (req, res) => {
 app.post('/translate', async (req, res) => {
     const { sentence } = req.body
     try {
-        const result = await translte(sentence, { from: 'en', to: 'zh' })
-        res.json(result.trans_result.dst)
+        const result = await fetch('https://libretranslate.com/translate', {
+            method: 'POST',
+            body: JSON.stringify({
+                q: sentence,
+                source: 'en',
+                target: 'zh',
+            }),
+            headers: { 'Content-type': 'application/json' },
+        })
+        const r: { translatedText: string } = await result.json()
+        res.json(r)
     } catch (error) {
         console.error(error)
         res.status(500).send('translate failed')
@@ -155,7 +161,7 @@ app.post('/translate', async (req, res) => {
 
 app.post('/clean', async (req, res) => {
     const { sentence } = req.body
-    res.json(cleanText2(sentence))
+    res.json(sentence)
 })
 
 app.listen(port, () => {
