@@ -2,6 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import DataManager from './data_manager'
 import multer from 'multer'
+import DataFetcher from './data_fetcher'
+import { Vocabulary } from '@loginote/types'
 
 const app = express()
 const port = 3001
@@ -14,6 +16,7 @@ app.use(
 )
 
 const dataManager = new DataManager()
+const dataFetcher = new DataFetcher()
 
 const fileStorage = multer.diskStorage({
     destination: (_req, _file, callback) => {
@@ -64,7 +67,34 @@ app.get('/sentences/:sentenceId', async (req, res) => {
         : res.status(404).json({ message: 'Sentence not found' })
 })
 
-app.post('/sentences', async (req, res) => {
+app.get('/sentences', async (req, res) => {
+    const ids = req.query.ids as string
+
+    if (!ids) {
+        return res.status(400).json({ message: 'No sentence IDs provided' })
+    }
+
+    const sentenceIds: number[] = ids
+        .split(',')
+        .map(id => Number(id))
+        .filter(id => !isNaN(id) && Number.isFinite(id))
+
+    if (sentenceIds.length === 0) {
+        return res
+            .status(400)
+            .json({ message: 'Invalid sentence IDs provided' })
+    }
+
+    const sentences = await dataManager.getSentences(sentenceIds)
+
+    if (sentences && sentences.length > 0) {
+        res.json(sentences)
+    } else {
+        res.status(404).json({ message: 'Sentences not found' })
+    }
+})
+
+app.post('/sentence', async (req, res) => {
     const success = await dataManager.postSentence(req.body)
     success
         ? res.status(201).json({ message: 'Sentence added successfully' })
@@ -141,22 +171,21 @@ app.get('/exists/:name', async (req, res) => {
 
 app.post('/translate', async (req, res) => {
     const { sentence } = req.body
-    try {
-        const result = await fetch('https://libretranslate.com/translate', {
-            method: 'POST',
-            body: JSON.stringify({
-                q: sentence,
-                source: 'en',
-                target: 'zh',
-            }),
-            headers: { 'Content-type': 'application/json' },
-        })
-        const r: { translatedText: string } = await result.json()
-        res.json(r)
-    } catch (error) {
-        console.error(error)
-        res.status(500).send('translate failed')
+    const result = dataFetcher.translate(sentence)
+    res.json(result)
+})
+
+app.get('/search/vocabulary/:word', async (req, res) => {
+    const { word } = req.params
+    const cache = await dataManager.getVocabulary(word)
+    if (cache) {
+        res.json(cache)
+        return
     }
+    const v0 = await dataFetcher.fetchVocabulary0(word)
+    const v1 = await dataFetcher.fetchVocabulary1(word)
+    const result: Vocabulary = { vocabularyO: v0, vocabulary1: v1 }
+    res.json(result)
 })
 
 app.post('/clean', async (req, res) => {

@@ -25,12 +25,30 @@ export interface FileInfo {
     urlPath: string
 }
 
-// Raw information of a vocabulary. Used in getting the raw data
+export interface FileNode {
+    file: string
+    sentences: SentenceId[]
+}
+
 export interface Vocabulary {
+    vocabularyO: Vocabulary0 | null
+    vocabulary1: Vocabulary1 | null
+}
+
+// dictionaryapi
+export interface Vocabulary0 {
     word: string
     phonetics: Phonetic[]
     meanings: Meaning[]
     spelledLike: string[]
+}
+
+// stardict
+export interface Vocabulary1 {
+    word: string
+    tag: string
+    translation: string
+    exchange: string
 }
 
 export interface Phonetic {

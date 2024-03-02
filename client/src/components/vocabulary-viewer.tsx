@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { DataFetcher } from '../core/data'
 import ApiClient from '../core/api_client'
-import { Vocabulary } from '@loginote/types' // 假设这是你的类型定义
+import { Vocabulary0 } from '@loginote/types' // 假设这是你的类型定义
 import {
     Button,
     Card,
@@ -100,7 +99,7 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
     onClose,
 }) => {
     const classes = useStyles()
-    const [vocabulary, setVocabulary] = useState<Vocabulary | null>(null)
+    const [vocabulary, setVocabulary] = useState<Vocabulary0 | null>(null)
     const [exporationOpen, setExporationOpen] = useState(false)
 
     useEffect(() => {

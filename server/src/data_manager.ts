@@ -1,5 +1,5 @@
 import {
-    Vocabulary,
+    Vocabulary0,
     Sentence,
     DailyProgress,
     VocabularySet,
@@ -10,6 +10,8 @@ import {
     VocabularyNode,
     TotalProgress,
     FileInfo,
+    Vocabulary,
+    FileNode,
 } from '@loginote/types'
 import fs, { ReadStream } from 'fs'
 import fsp from 'fs/promises'
@@ -19,6 +21,7 @@ const SUB_DIRECTORIES = [
     'vocabulary_nodes',
     'vocabularies',
     'files',
+    'file_nodes',
     'sentences',
     'daily_progresses',
     'vocabulary_sets',
@@ -184,6 +187,21 @@ class DataManager {
         return this.saveData('files', name, file)
     }
 
+    async getFileNode(file: string): Promise<FileNode | null> {
+        return this.loadData<FileNode>('file_nodes', file)
+    }
+
+    async postFileNode(node: FileNode): Promise<boolean> {
+        return this.saveData('file_nodes', node.file, node)
+            .then(_v => {
+                return true
+            })
+            .catch(e => {
+                console.error(e)
+                return false
+            })
+    }
+
     getFile(name: string): ReadStream | null {
         const filePath = path.join(this.noteDirectory, 'files', `${name}`)
         if (fs.existsSync(filePath)) {
@@ -198,14 +216,16 @@ class DataManager {
     }
 
     async postVocabulary(vocabulary: Vocabulary): Promise<boolean> {
-        return this.saveData('vocabularies', vocabulary.word, vocabulary).then(
-            valid => {
-                if (!valid) return false
-                this.todayProgress.newWords.add(vocabulary.word)
-                this.flushProgress()
-                return true
-            }
-        )
+        return this.saveData(
+            'vocabularies',
+            vocabulary?.vocabularyO?.word ?? '',
+            vocabulary
+        ).then(valid => {
+            if (!valid) return false
+            this.todayProgress.newWords.add(vocabulary?.vocabularyO?.word ?? '')
+            this.flushProgress()
+            return true
+        })
     }
 
     async getVocabulary(word: string): Promise<Vocabulary | null> {
@@ -225,9 +245,24 @@ class DataManager {
                 this.loginote.sentenceId + 1
                 this.flushNote()
             }
+            // Set vocabulary nodes
             sentence.words.forEach(w => {
                 this.addVocabularyNode(w, [sentence.id])
             })
+
+            // Set file nodes
+            if (sentence.source) {
+                const path = sentence.source.filePath
+                this.getFileNode(path).then(v => {
+                    const node: FileNode = v ?? {
+                        file: path,
+                        sentences: [],
+                    }
+                    node.sentences.push(sentence.id)
+                    this.postFileNode(node)
+                })
+            }
+
             this.todayProgress.sentences.add(sentence.id)
             this.flushProgress()
             return true
@@ -281,6 +316,22 @@ class DataManager {
 
     async getSentence(sentenceId: number): Promise<Sentence | null> {
         return this.loadData<Sentence>('sentences', sentenceId.toString())
+    }
+
+    async getSentences(sentenceIds: number[]): Promise<Sentence[] | null> {
+        const sentences = await Promise.all(
+            sentenceIds.map(id =>
+                this.loadData<Sentence>('sentences', id.toString())
+            )
+        )
+
+        const validSentences = sentences.filter(sentence => sentence !== null)
+
+        if (validSentences.length === 0) {
+            return null
+        }
+
+        return validSentences as Sentence[]
     }
 
     async getDailyProgress(date: string): Promise<DailyProgress | null> {

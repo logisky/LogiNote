@@ -30,6 +30,11 @@ class ApiClient {
         return this.makeRequest(`/sentences/${sentenceId}`, 'GET')
     }
 
+    static async getSentences(ids: SentenceId[]): Promise<Sentence[]> {
+        const queryParam = `ids=${ids.join(',')}`
+        return this.makeRequest(`/sentences?${queryParam}`, 'GET')
+    }
+
     static async postSentence(sentence: Sentence) {
         return this.makeRequest('/sentences', 'POST', sentence)
     }
