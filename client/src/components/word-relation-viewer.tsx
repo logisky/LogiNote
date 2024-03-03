@@ -51,7 +51,7 @@ const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
 
         let nodes: Node[] = []
         let edges: Edge[] = []
-        vocabulary?.meanings.forEach(v => {
+        vocabulary?.vocabulary0?.meanings.forEach(v => {
             v.definitions.forEach(d => {
                 d.synonyms.forEach(s => {
                     const n = { id: s, label: '' }

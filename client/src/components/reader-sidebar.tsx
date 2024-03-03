@@ -11,14 +11,40 @@ import NoteIcon from '@material-ui/icons/Note'
 import HighlightIcon from '@material-ui/icons/Highlight'
 import HighlightSentenceViewer from './highlight-sentence-viewer'
 import { useNotifierContext } from './reader-notifier'
+import { HighlightArea } from '@loginote/types'
 
-export const Sidebar = () => {
-    const { page, sentenceData, setActiveTab } = useNotifierContext()
+export const Sidebar: React.FC<{ jumpTo: (ha: HighlightArea) => void }> = ({
+    jumpTo,
+}) => {
+    const { page, sentenceData, setActiveTab, sentences } = useNotifierContext()
 
     const renderContent = () => {
         switch (page) {
             case 'notes':
-                return <Box p={2}>Notes Content</Box>
+                return (
+                    <Box p={2}>
+                        <List>
+                            {sentences.map((s, i) => (
+                                <ListItem
+                                    button
+                                    key={i}
+                                    onClick={() => {
+                                        if (s.source) {
+                                            console.log(
+                                                s.source.highlightAreas[0]
+                                            )
+                                            jumpTo(s.source.highlightAreas[0])
+                                        }
+                                    }}
+                                >
+                                    <ListItemText
+                                        primary={s.content}
+                                    ></ListItemText>
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Box>
+                )
             case 'highlights':
                 return (
                     sentenceData && (

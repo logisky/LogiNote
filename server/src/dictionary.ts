@@ -17,16 +17,6 @@
 //     }
 // })
 
-// export function checkSpell(word: string): boolean {
-//     if (word.length === 1 && word != 'a') return false
-//     if (word.match(/^[A-Z]+$/)) return true
-//     if (dictionary) {
-//         return dictionary.spellCheck(word.toLowerCase())
-//     }
-//     console.log('dictionary is null')
-//     return false
-// }
-
 export function checkSpell(word: string): boolean {
     return true
 }

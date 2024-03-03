@@ -3,13 +3,14 @@ import React, { MouseEvent, useEffect, useState } from 'react'
 import { TextField, Button, Chip, makeStyles, Grid } from '@material-ui/core'
 import ApiClient from '../core/api_client'
 import VocabularyViewer from './vocabulary-viewer'
+import { useNotifierContext } from './reader-notifier'
 
 export interface HighlightSentenceViewerProps {
     fileName: string
     sentence: string
     data: HighlightArea[]
     // Notifier
-    onChange: () => void
+    onChange: (sentence: Sentence) => void
 }
 
 const useSentenceStyles = makeStyles({
@@ -45,6 +46,7 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
     sentence,
     data,
     fileName,
+    onChange,
 }) => {
     const classes = useSentenceStyles()
     const containerClasses = useContainerStyles()
@@ -58,20 +60,29 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
     const [modalStyle, setModalStyle] = useState({})
 
     useEffect(() => {
-        ApiClient.clean(sentence)
+        ApiClient.translate(editedSentence)
             .then(v => {
-                setEditedSentence(v)
-                setWords(v.split(' '))
-                return ApiClient.translate(v)
-            })
-            .then(translation => {
-                setEditedTranslation(translation)
+                setEditedTranslation(v)
             })
             .catch(e => {
                 console.error(e)
             })
+        // ApiClient.clean(sentence)
+        //     .then(v => {
+        //         setEditedSentence(v)
+        //         setWords(v.split(' '))
+        //         return ApiClient.translate(v)
+        //     })
+        //     .then(translation => {
+        //         setEditedTranslation(translation)
+        //     })
+        //     .catch(e => {
+        //         console.error(e)
+        //     })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [editedSentence])
+
+    const { sentences, setSentences, setActiveTab } = useNotifierContext()
 
     const handleEditedSentence = (value: string) => {
         setEditedSentence(value)
@@ -103,7 +114,11 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
             words: addedWords,
             source: { filePath: fileName, highlightAreas: data },
         }
-        ApiClient.postSentence(sentence).then(() => {})
+        ApiClient.postSentence(sentence).then(() => {
+            setSentences([...sentences, sentence])
+            setActiveTab('notes')
+            onChange(sentence)
+        })
     }
 
     const wordAddedToNote = (): void => {

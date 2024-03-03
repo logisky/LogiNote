@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ApiClient from '../core/api_client'
-import { Vocabulary0 } from '@loginote/types' // 假设这是你的类型定义
+import { Vocabulary } from '@loginote/types' // 假设这是你的类型定义
 import {
     Button,
     Card,
@@ -99,12 +99,12 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
     onClose,
 }) => {
     const classes = useStyles()
-    const [vocabulary, setVocabulary] = useState<Vocabulary0 | null>(null)
+    const [vocabulary, setVocabulary] = useState<Vocabulary | null>(null)
     const [exporationOpen, setExporationOpen] = useState(false)
 
     useEffect(() => {
         if (word) {
-            DataFetcher.fetchVocabulary(word)
+            ApiClient.getVocabulary(word)
                 .then(info => {
                     setVocabulary(info)
                 })
@@ -144,67 +144,84 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
                 <Card className={classes.card} style={modalStyle}>
                     <CardContent className={classes.contentScroll}>
                         <Typography variant="h5" component="h2" gutterBottom>
-                            {vocabulary.word}
+                            {vocabulary.vocabulary0?.word}
                         </Typography>
-                        {vocabulary.phonetics.map((phonetic, index) => (
-                            <div key={index} className={classes.phoneticText}>
-                                <Typography color="textSecondary">
-                                    {phonetic.text}
-                                </Typography>
-                                {phonetic.audio && (
-                                    <IconButton aria-label="play">
-                                        <audio src={phonetic.audio} controls />
-                                    </IconButton>
-                                )}
-                            </div>
-                        ))}
-                        {vocabulary.meanings.map((meaning, index) => (
-                            <Accordion key={index}>
-                                <AccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
+                        {vocabulary.vocabulary0?.phonetics.map(
+                            (phonetic, index) => (
+                                <div
+                                    key={index}
+                                    className={classes.phoneticText}
                                 >
-                                    <Typography>
-                                        {meaning.partOfSpeech}
+                                    <Typography color="textSecondary">
+                                        {phonetic.text}
                                     </Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    {meaning.definitions.map(
-                                        (def, defIndex) => (
-                                            <div key={defIndex}>
-                                                <Typography paragraph>
-                                                    {def.definition}
-                                                </Typography>
-                                                {def.example && (
-                                                    <Typography
-                                                        paragraph
-                                                    >{`Example: ${def.example}`}</Typography>
-                                                )}
-                                                {def.synonyms.length > 0 && (
-                                                    <Typography
-                                                        paragraph
-                                                    >{`Synonyms: ${def.synonyms.join(', ')}`}</Typography>
-                                                )}
-                                                {def.antonyms.length > 0 && (
-                                                    <Typography
-                                                        paragraph
-                                                    >{`Antonyms: ${def.antonyms.join(', ')}`}</Typography>
-                                                )}
-                                            </div>
+                                    {phonetic.audio && (
+                                        <IconButton aria-label="play">
+                                            <audio
+                                                src={phonetic.audio}
+                                                controls
+                                            />
+                                        </IconButton>
+                                    )}
+                                </div>
+                            )
+                        )}
+                        {vocabulary.vocabulary0?.meanings.map(
+                            (meaning, index) => (
+                                <Accordion key={index}>
+                                    <AccordionSummary
+                                        expandIcon={<ExpandMoreIcon />}
+                                    >
+                                        <Typography>
+                                            {meaning.partOfSpeech}
+                                        </Typography>
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        {meaning.definitions.map(
+                                            (def, defIndex) => (
+                                                <div key={defIndex}>
+                                                    <Typography paragraph>
+                                                        {def.definition}
+                                                    </Typography>
+                                                    {def.example && (
+                                                        <Typography
+                                                            paragraph
+                                                        >{`Example: ${def.example}`}</Typography>
+                                                    )}
+                                                    {def.synonyms.length >
+                                                        0 && (
+                                                        <Typography
+                                                            paragraph
+                                                        >{`Synonyms: ${def.synonyms.join(', ')}`}</Typography>
+                                                    )}
+                                                    {def.antonyms.length >
+                                                        0 && (
+                                                        <Typography
+                                                            paragraph
+                                                        >{`Antonyms: ${def.antonyms.join(', ')}`}</Typography>
+                                                    )}
+                                                </div>
+                                            )
+                                        )}
+                                    </AccordionDetails>
+                                </Accordion>
+                            )
+                        )}
+                        {vocabulary.vocabulary0 &&
+                            vocabulary.vocabulary0.spelledLike.length > 0 && (
+                                <List className={classes.spelledLikeList}>
+                                    <Typography variant="subtitle1">
+                                        Similar Spellings:
+                                    </Typography>
+                                    {vocabulary.vocabulary0?.spelledLike.map(
+                                        (word, index) => (
+                                            <ListItem key={index}>
+                                                {word}
+                                            </ListItem>
                                         )
                                     )}
-                                </AccordionDetails>
-                            </Accordion>
-                        ))}
-                        {vocabulary.spelledLike.length > 0 && (
-                            <List className={classes.spelledLikeList}>
-                                <Typography variant="subtitle1">
-                                    Similar Spellings:
-                                </Typography>
-                                {vocabulary.spelledLike.map((word, index) => (
-                                    <ListItem key={index}>{word}</ListItem>
-                                ))}
-                            </List>
-                        )}
+                                </List>
+                            )}
                         <Button
                             className={classes.subtleButton}
                             onClick={() => setExporationOpen(true)}

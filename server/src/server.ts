@@ -171,7 +171,8 @@ app.get('/exists/:name', async (req, res) => {
 
 app.post('/translate', async (req, res) => {
     const { sentence } = req.body
-    const result = dataFetcher.translate(sentence)
+    const result = await dataFetcher.translate(sentence)
+    console.log('translate result' + result)
     res.json(result)
 })
 
@@ -184,7 +185,7 @@ app.get('/search/vocabulary/:word', async (req, res) => {
     }
     const v0 = await dataFetcher.fetchVocabulary0(word)
     const v1 = await dataFetcher.fetchVocabulary1(word)
-    const result: Vocabulary = { vocabularyO: v0, vocabulary1: v1 }
+    const result: Vocabulary = { vocabulary0: v0, vocabulary1: v1 }
     res.json(result)
 })
 

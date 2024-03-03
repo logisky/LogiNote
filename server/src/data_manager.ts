@@ -218,11 +218,11 @@ class DataManager {
     async postVocabulary(vocabulary: Vocabulary): Promise<boolean> {
         return this.saveData(
             'vocabularies',
-            vocabulary?.vocabularyO?.word ?? '',
+            vocabulary?.vocabulary0?.word ?? '',
             vocabulary
         ).then(valid => {
             if (!valid) return false
-            this.todayProgress.newWords.add(vocabulary?.vocabularyO?.word ?? '')
+            this.todayProgress.newWords.add(vocabulary?.vocabulary0?.word ?? '')
             this.flushProgress()
             return true
         })

@@ -11,17 +11,20 @@ export class DataFetcher {
     }
 
     public async translate(text: string): Promise<string> {
-        const result = await fetch('https://libretranslate.com/translate', {
+        const result = await fetch('https://www.libretranslate.com/translate', {
             method: 'POST',
             body: JSON.stringify({
                 q: text,
                 source: 'en',
                 target: 'zh',
+                format: 'text',
             }),
             headers: { 'Content-type': 'application/json' },
         })
+        console.log(result.body)
         const r: { translatedText: string } = await result.json()
-        return r.translatedText
+        console.log(r)
+        return r.translatedText ?? ''
     }
 
     public async fetchVocabulary1(s: string): Promise<Vocabulary1 | null> {

@@ -18,12 +18,7 @@ import { HighlightSentenceViewerProps } from './highlight-sentence-viewer'
 import { Sidebar } from './reader-sidebar'
 import { useEffect } from 'react'
 import { PageNotifier, useNotifierContext } from './reader-notifier'
-
-interface SentenceBrief {
-    id: number
-    content: string
-    highlightAreas: HighlightArea[]
-}
+import { Sentence } from '@loginote/types'
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -64,29 +59,31 @@ const HighlightActionComponent: React.FC<HighlightSentenceViewerProps> = ({
         setHighlightData({ fileName, data, sentence, onChange: onChange })
         console.log('set:   ' + sentence)
         setActiveTab('highlights')
-    }, [fileName, data, sentence, onChange, setHighlightData, setActiveTab])
+    }, [fileName, data, sentence, setHighlightData, setActiveTab])
     return null
 }
 
 const PdfViewer: React.FC = () => {
+    const { sentences, setSentences, setActiveTab } = useNotifierContext()
     const { filePath } = useParams()
     if (!filePath) throw Error('invalid file path when opening PDF file')
 
-    const [message, setMessage] = React.useState('')
-    const [notes, setNotes] = React.useState<SentenceBrief[]>([])
     const [pdfUrl, setPdfUrl] = React.useState<string>('')
 
-    ApiClient.getFileExists(filePath).then(v => {
-        if (v) {
-            setPdfUrl(ApiClient.getFilePath(filePath))
-        }
-    })
-    let noteId = notes.length
+    useEffect(() => {
+        ApiClient.getFileExists(filePath).then(v => {
+            if (v) {
+                setPdfUrl(ApiClient.getFilePath(filePath))
+            }
+        })
+    }, [])
 
-    const noteEles: Map<number, HTMLElement> = new Map()
     const classes = useStyles()
 
-    const sentenceChange = (): void => {}
+    const sentenceChange = (): void => {
+        console.log('.........?')
+        console.log(sentences.length)
+    }
 
     const renderHighlightTarget = (props: RenderHighlightTargetProps) => {
         return (
@@ -94,93 +91,92 @@ const PdfViewer: React.FC = () => {
                 fileName={filePath}
                 data={props.highlightAreas}
                 sentence={props.selectedText}
-                onChange={() => {
-                    props.toggle()
+                onChange={(sentence: Sentence) => {
+                    // console.log(sentence) console.log([...sentences, sentence])
+                    setSentences([...sentences, sentence])
                     sentenceChange()
+                    setActiveTab('notes')
+                    props.cancel()
                 }}
             ></HighlightActionComponent>
         )
     }
 
     const renderHighlightContent = (props: RenderHighlightContentProps) => {
-        const addNote = () => {
-            if (message !== '') {
-                const note: SentenceBrief = {
-                    id: ++noteId,
-                    content: message,
-                    highlightAreas: props.highlightAreas,
-                }
-                setNotes(notes.concat([note]))
-                props.cancel()
-            }
-        }
+        props.cancel()
+        return <div></div>
+        // const addNote = () => {
+        //     if (message !== '') {
+        //         const note: SentenceBrief = {
+        //             id: ++noteId,
+        //             content: message,
+        //             highlightAreas: props.highlightAreas,
+        //         }
+        //         setNotes(notes.concat([note]))
+        //         props.cancel()
+        //     }
+        // }
 
-        return (
-            <div
-                style={{
-                    background: '#fff',
-                    border: '1px solid rgba(0, 0, 0, .3)',
-                    borderRadius: '2px',
-                    padding: '8px',
-                    position: 'absolute',
-                    left: `${props.selectionRegion.left}%`,
-                    top: `${props.selectionRegion.top + props.selectionRegion.height}%`,
-                    zIndex: 1,
-                }}
-            >
-                <div>
-                    <textarea
-                        rows={3}
-                        style={{
-                            border: '1px solid rgba(0, 0, 0, .3)',
-                        }}
-                        onChange={e => setMessage(e.target.value)}
-                    ></textarea>
-                </div>
-                <div
-                    style={{
-                        display: 'flex',
-                        marginTop: '8px',
-                    }}
-                >
-                    <div style={{ marginRight: '8px' }}>
-                        <PrimaryButton onClick={addNote}>Add</PrimaryButton>
-                    </div>
-                    <Button onClick={props.cancel}>Cancel</Button>
-                </div>
-            </div>
-        )
-    }
-
-    const jumpToNote = (note: SentenceBrief) => {
-        if (noteEles.has(note.id)) {
-            noteEles.get(note.id)?.scrollIntoView()
-        }
+        // return (
+        //     <div
+        //         style={{
+        //             background: '#fff',
+        //             border: '1px solid rgba(0, 0, 0, .3)',
+        //             borderRadius: '2px',
+        //             padding: '8px',
+        //             position: 'absolute',
+        //             left: `${props.selectionRegion.left}%`,
+        //             top: `${props.selectionRegion.top + props.selectionRegion.height}%`,
+        //             zIndex: 1,
+        //         }}
+        //     >
+        //         <div>
+        //             <textarea
+        //                 rows={3}
+        //                 style={{
+        //                     border: '1px solid rgba(0, 0, 0, .3)',
+        //                 }}
+        //                 onChange={e => setMessage(e.target.value)}
+        //             ></textarea>
+        //         </div>
+        //         <div
+        //             style={{
+        //                 display: 'flex',
+        //                 marginTop: '8px',
+        //             }}
+        //         >
+        //             <div style={{ marginRight: '8px' }}>
+        //                 <PrimaryButton onClick={addNote}>Add</PrimaryButton>
+        //             </div>
+        //             <Button onClick={props.cancel}>Cancel</Button>
+        //         </div>
+        //     </div>
+        // )
     }
 
     const renderHighlights = (props: RenderHighlightsProps) => (
         <div>
-            {notes.map(note => (
-                <React.Fragment key={note.id}>
-                    {note.highlightAreas
-                        .filter(area => area.pageIndex === props.pageIndex)
-                        .map((area, idx) => (
-                            <div
-                                key={idx}
-                                style={Object.assign(
-                                    {},
-                                    {
-                                        background: 'yellow',
-                                        opacity: 0.4,
-                                    },
-                                    props.getCssProperties(area, props.rotation)
-                                )}
-                                onClick={() => jumpToNote(note)}
-                                ref={(ref): void => {
-                                    noteEles.set(note.id, ref as HTMLElement)
-                                }}
-                            />
-                        ))}
+            {sentences.map(sentence => (
+                <React.Fragment key={sentence.content}>
+                    {sentence.source &&
+                        sentence.source.highlightAreas
+                            .filter(area => area.pageIndex === props.pageIndex)
+                            .map((area, idx) => (
+                                <div
+                                    key={idx}
+                                    style={Object.assign(
+                                        {},
+                                        {
+                                            background: 'yellow',
+                                            opacity: 0.4,
+                                        },
+                                        props.getCssProperties(
+                                            area,
+                                            props.rotation
+                                        )
+                                    )}
+                                />
+                            ))}
                 </React.Fragment>
             ))}
         </div>
@@ -193,16 +189,22 @@ const PdfViewer: React.FC = () => {
     })
 
     const { jumpToHighlightArea } = highlightPluginInstance
+
     const defaultLayoutPluginInstance = defaultLayoutPlugin()
 
     return (
-        <PageNotifier>
-            <Grid container className={classes.root}>
-                <Grid item xs={3} className={classes.notesSection}>
-                    <Sidebar></Sidebar>
-                </Grid>
-                <Grid item xs={9} className={classes.viewerSection}>
-                    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+        <Grid container className={classes.root}>
+            <Grid item xs={3} className={classes.notesSection}>
+                <Sidebar
+                    jumpTo={(area: HighlightArea) => {
+                        console.log('jumping')
+                        jumpToHighlightArea(area)
+                    }}
+                ></Sidebar>
+            </Grid>
+            <Grid item xs={9} className={classes.viewerSection}>
+                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+                    <div style={{ height: '1200px' }}>
                         {pdfUrl && (
                             <Viewer
                                 fileUrl={pdfUrl}
@@ -212,11 +214,19 @@ const PdfViewer: React.FC = () => {
                                 ]}
                             />
                         )}
-                    </Worker>
-                </Grid>
+                    </div>
+                </Worker>
             </Grid>
+        </Grid>
+    )
+}
+
+const PdfViewerWrapper: React.FC = () => {
+    return (
+        <PageNotifier>
+            <PdfViewer></PdfViewer>
         </PageNotifier>
     )
 }
 
-export default PdfViewer
+export default PdfViewerWrapper

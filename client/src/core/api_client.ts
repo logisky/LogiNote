@@ -36,7 +36,7 @@ class ApiClient {
     }
 
     static async postSentence(sentence: Sentence) {
-        return this.makeRequest('/sentences', 'POST', sentence)
+        return this.makeRequest('/sentence', 'POST', sentence)
     }
 
     static async getVocabularySet(setId: number) {

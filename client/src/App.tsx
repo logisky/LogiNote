@@ -1,7 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import HomePage from './components/home-page'
-import PdfViewer from './components/pdf-viewer'
+import PdfViewerWrapper from './components/pdf-viewer'
 
 const App: React.FC = () => {
     return (
@@ -10,7 +10,7 @@ const App: React.FC = () => {
                 <Route path="/" element={<HomePage />}></Route>
                 <Route
                     path="/pdf-viewer/:filePath"
-                    element={<PdfViewer />}
+                    element={<PdfViewerWrapper />}
                 ></Route>
             </Routes>
         </Router>

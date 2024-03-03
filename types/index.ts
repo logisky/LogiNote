@@ -31,7 +31,7 @@ export interface FileNode {
 }
 
 export interface Vocabulary {
-    vocabularyO: Vocabulary0 | null
+    vocabulary0: Vocabulary0 | null
     vocabulary1: Vocabulary1 | null
 }
 
