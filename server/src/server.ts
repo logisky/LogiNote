@@ -169,6 +169,12 @@ app.get('/exists/:name', async (req, res) => {
     res.json(v)
 })
 
+app.get('/file_sentenses/:name', async (req, res) => {
+    const { name } = req.params
+    const sentences = await dataManager.getFileSentences(name)
+    res.json(sentences)
+})
+
 app.post('/translate', async (req, res) => {
     const { sentence } = req.body
     const result = await dataFetcher.translate(sentence)

@@ -6,7 +6,7 @@ import {
     RenderHighlightsProps,
     RenderHighlightTargetProps,
 } from '@react-pdf-viewer/highlight'
-import { Button, PrimaryButton, Viewer, Worker } from '@react-pdf-viewer/core'
+import { Viewer, Worker } from '@react-pdf-viewer/core'
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout'
 
 import '@react-pdf-viewer/core/lib/styles/index.css'
@@ -57,8 +57,8 @@ const HighlightActionComponent: React.FC<HighlightSentenceViewerProps> = ({
 
     useEffect(() => {
         setHighlightData({ fileName, data, sentence, onChange: onChange })
-        console.log('set:   ' + sentence)
         setActiveTab('highlights')
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fileName, data, sentence, setHighlightData, setActiveTab])
     return null
 }
@@ -74,16 +74,15 @@ const PdfViewer: React.FC = () => {
         ApiClient.getFileExists(filePath).then(v => {
             if (v) {
                 setPdfUrl(ApiClient.getFilePath(filePath))
+                ApiClient.getFileSentences(filePath).then(v => {
+                    setSentences(v)
+                })
             }
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const classes = useStyles()
-
-    const sentenceChange = (): void => {
-        console.log('.........?')
-        console.log(sentences.length)
-    }
 
     const renderHighlightTarget = (props: RenderHighlightTargetProps) => {
         return (
@@ -94,7 +93,6 @@ const PdfViewer: React.FC = () => {
                 onChange={(sentence: Sentence) => {
                     // console.log(sentence) console.log([...sentences, sentence])
                     setSentences([...sentences, sentence])
-                    sentenceChange()
                     setActiveTab('notes')
                     props.cancel()
                 }}
@@ -104,54 +102,7 @@ const PdfViewer: React.FC = () => {
 
     const renderHighlightContent = (props: RenderHighlightContentProps) => {
         props.cancel()
-        return <div></div>
-        // const addNote = () => {
-        //     if (message !== '') {
-        //         const note: SentenceBrief = {
-        //             id: ++noteId,
-        //             content: message,
-        //             highlightAreas: props.highlightAreas,
-        //         }
-        //         setNotes(notes.concat([note]))
-        //         props.cancel()
-        //     }
-        // }
-
-        // return (
-        //     <div
-        //         style={{
-        //             background: '#fff',
-        //             border: '1px solid rgba(0, 0, 0, .3)',
-        //             borderRadius: '2px',
-        //             padding: '8px',
-        //             position: 'absolute',
-        //             left: `${props.selectionRegion.left}%`,
-        //             top: `${props.selectionRegion.top + props.selectionRegion.height}%`,
-        //             zIndex: 1,
-        //         }}
-        //     >
-        //         <div>
-        //             <textarea
-        //                 rows={3}
-        //                 style={{
-        //                     border: '1px solid rgba(0, 0, 0, .3)',
-        //                 }}
-        //                 onChange={e => setMessage(e.target.value)}
-        //             ></textarea>
-        //         </div>
-        //         <div
-        //             style={{
-        //                 display: 'flex',
-        //                 marginTop: '8px',
-        //             }}
-        //         >
-        //             <div style={{ marginRight: '8px' }}>
-        //                 <PrimaryButton onClick={addNote}>Add</PrimaryButton>
-        //             </div>
-        //             <Button onClick={props.cancel}>Cancel</Button>
-        //         </div>
-        //     </div>
-        // )
+        return <></>
     }
 
     const renderHighlights = (props: RenderHighlightsProps) => (

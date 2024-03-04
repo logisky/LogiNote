@@ -202,6 +202,28 @@ class DataManager {
             })
     }
 
+    async getFileSentences(file: string): Promise<Sentence[]> {
+        return this.getFileNode(file)
+            .then(value => {
+                if (!value) {
+                    return []
+                }
+
+                return this.getSentences(value.sentences)
+                    .then(sentences => {
+                        return sentences ?? []
+                    })
+                    .catch(e => {
+                        console.error(e)
+                        return []
+                    })
+            })
+            .catch(e => {
+                console.error(e)
+                return []
+            })
+    }
+
     getFile(name: string): ReadStream | null {
         const filePath = path.join(this.noteDirectory, 'files', `${name}`)
         if (fs.existsSync(filePath)) {

@@ -73,6 +73,10 @@ class ApiClient {
             .catch(error => console.error('Error fetching PDF', error))
     }
 
+    static async getFileSentences(p: string): Promise<Sentence[]> {
+        return this.makeRequest(`/file_sentences/${p}`, 'GET')
+    }
+
     static async getFileExists(file: string): Promise<boolean> {
         return this.makeRequest(`/exists/${file}`, 'GET')
     }
