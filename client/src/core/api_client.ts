@@ -89,6 +89,10 @@ class ApiClient {
         return this.makeRequest(`/clean`, 'POST', { sentence })
     }
 
+    static async searchVocabulary(word: string): Promise<Vocabulary> {
+        return this.makeRequest(`/search/vocabulary/${word}`, 'GET')
+    }
+
     static async makeRequest<T>(
         path: string,
         method: string,

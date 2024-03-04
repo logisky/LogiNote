@@ -169,7 +169,7 @@ app.get('/exists/:name', async (req, res) => {
     res.json(v)
 })
 
-app.get('/file_sentenses/:name', async (req, res) => {
+app.get('/file_sentences/:name', async (req, res) => {
     const { name } = req.params
     const sentences = await dataManager.getFileSentences(name)
     res.json(sentences)
@@ -179,16 +179,12 @@ app.post('/translate', async (req, res) => {
     const { sentence } = req.body
     const result = await dataFetcher.translate(sentence)
     console.log('translate result' + result)
-    res.json(result)
+    if (result) res.json(result)
+    else res.status(400).send('translate failed')
 })
 
 app.get('/search/vocabulary/:word', async (req, res) => {
     const { word } = req.params
-    const cache = await dataManager.getVocabulary(word)
-    if (cache) {
-        res.json(cache)
-        return
-    }
     const v0 = await dataFetcher.fetchVocabulary0(word)
     const v1 = await dataFetcher.fetchVocabulary1(word)
     const result: Vocabulary = { vocabulary0: v0, vocabulary1: v1 }

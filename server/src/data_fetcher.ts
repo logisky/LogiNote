@@ -11,20 +11,28 @@ export class DataFetcher {
     }
 
     public async translate(text: string): Promise<string> {
-        const result = await fetch('https://www.libretranslate.com/translate', {
-            method: 'POST',
-            body: JSON.stringify({
-                q: text,
-                source: 'en',
-                target: 'zh',
-                format: 'text',
-            }),
-            headers: { 'Content-type': 'application/json' },
-        })
-        console.log(result.body)
-        const r: { translatedText: string } = await result.json()
-        console.log(r)
-        return r.translatedText ?? ''
+        try {
+            const result = await fetch(
+                'https://www.libretranslate.com/translate',
+                {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        q: text,
+                        source: 'en',
+                        target: 'zh',
+                        format: 'text',
+                    }),
+                    headers: { 'Content-type': 'application/json' },
+                }
+            )
+            console.log(result.body)
+            const r: { translatedText: string } = await result.json()
+            console.log(r)
+            return r.translatedText ?? ''
+        } catch (e) {
+            console.error(e)
+            return ''
+        }
     }
 
     public async fetchVocabulary1(s: string): Promise<Vocabulary1 | null> {
@@ -35,19 +43,24 @@ export class DataFetcher {
     }
 
     public async fetchVocabulary0(s: string): Promise<Vocabulary0 | null> {
-        const word = s.trim()
-        const vocabulary = this._fetchBasicInfo(word)
+        const word = s.trim().toLowerCase()
+        try {
+            const vocabulary = this._fetchBasicInfo(word)
 
-        const spelledLike = this._fetchSpelledLike(word)
+            const spelledLike = this._fetchSpelledLike(word)
 
-        const result = await Promise.all([vocabulary, spelledLike])
+            const result = await Promise.all([vocabulary, spelledLike])
 
-        const r = result[0]
+            const r = result[0]
 
-        if (!r) return null
-        r.spelledLike = result[1]
+            if (!r) return null
+            r.spelledLike = result[1]
 
-        return r
+            return r
+        } catch (e) {
+            console.error(e)
+            return null
+        }
     }
 
     private async _fetchBasicInfo(word: string): Promise<Vocabulary0 | null> {

@@ -104,7 +104,7 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
 
     useEffect(() => {
         if (word) {
-            ApiClient.getVocabulary(word)
+            ApiClient.searchVocabulary(word)
                 .then(info => {
                     setVocabulary(info)
                 })

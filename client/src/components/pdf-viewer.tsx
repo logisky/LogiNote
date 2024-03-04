@@ -107,8 +107,8 @@ const PdfViewer: React.FC = () => {
 
     const renderHighlights = (props: RenderHighlightsProps) => (
         <div>
-            {sentences.map(sentence => (
-                <React.Fragment key={sentence.content}>
+            {sentences.map((sentence, index) => (
+                <React.Fragment key={index}>
                     {sentence.source &&
                         sentence.source.highlightAreas
                             .filter(area => area.pageIndex === props.pageIndex)

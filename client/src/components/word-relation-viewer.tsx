@@ -46,7 +46,7 @@ const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
     const edges = useRef(new DataSet<Edge>([]))
 
     const fetchData = async (w: string) => {
-        const vocabulary = await ApiClient.getVocabulary(w)
+        const vocabulary = await ApiClient.searchVocabulary(w)
         // const nodeData = await ApiClient.getVocabularyNode(w)
 
         let nodes: Node[] = []
@@ -54,18 +54,28 @@ const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
         vocabulary?.vocabulary0?.meanings.forEach(v => {
             v.definitions.forEach(d => {
                 d.synonyms.forEach(s => {
-                    const n = { id: s, label: '' }
+                    const n = { id: s, label: s }
                     nodes.push(n)
 
-                    const e: Edge = { from: w, to: s, color: 'green' }
+                    const e: Edge = {
+                        from: w,
+                        to: s,
+                        color: 'green',
+                        id: `${w}*${s}`,
+                    }
                     edges.push(e)
                 })
 
                 d.antonyms.forEach(s => {
-                    const n = { id: s, label: '' }
+                    const n = { id: s, label: s }
                     nodes.push(n)
 
-                    const e: Edge = { from: w, to: s, color: 'red' }
+                    const e: Edge = {
+                        from: w,
+                        to: s,
+                        color: 'red',
+                        id: `${w}*${s}`,
+                    }
                     edges.push(e)
                 })
             })
@@ -74,6 +84,18 @@ const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
         return {
             relatedWords: nodes,
             relationships: edges,
+        }
+    }
+
+    const handleDoubleClick = (word: string) => {
+        const idx = selectedWords.indexOf(word)
+        if (idx < 0) {
+            setSelectedWords([...selectedWords, word])
+        } else {
+            setSelectedWords([
+                ...selectedWords.slice(0, idx),
+                ...selectedWords.slice(idx + 1),
+            ])
         }
     }
 
@@ -91,32 +113,28 @@ const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
                 const nodeId = params.nodes[0]
                 const { relatedWords, relationships } = await fetchData(nodeId)
 
-                relatedWords.forEach(node =>
-                    nodes.current.add({ id: node.id, label: '' })
-                )
-                relationships.forEach(rel => edges.current.add(rel))
+                relatedWords.forEach(node => {
+                    if (nodes.current.get(node.id)) return
+                    return nodes.current.add({ id: node.id, label: '' })
+                })
+                relationships.forEach(rel => {
+                    const id0 = rel.id as string
+                    const parts = id0.split('*')
+                    const id1 = `${parts[1]}*${parts[0]}`
+                    if (edges.current.get(id0) || edges.current.get(id1)) return
+                    return edges.current.add(rel)
+                })
             }
         })
-    }, [word])
 
-    network.current?.on('doubleClick', async function (params) {
-        if (params.nodes.length > 0) {
-            const nodeId = params.nodes[0]
-            handleDoubleClick(nodeId)
-        }
-    })
-
-    const handleDoubleClick = (word: string) => {
-        const idx = selectedWords.indexOf(word)
-        if (idx < 0) {
-            setSelectedWords([...selectedWords, word])
-        } else {
-            setSelectedWords([
-                ...selectedWords.slice(0, idx),
-                ...selectedWords.slice(idx + 1),
-            ])
-        }
-    }
+        network.current?.on('doubleClick', async function (params) {
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0]
+                handleDoubleClick(nodeId)
+            }
+        })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return (
         <div>
