@@ -115,7 +115,7 @@ const WordRelationsViewer: React.FC<{ word: string }> = ({ word }) => {
 
                 relatedWords.forEach(node => {
                     if (nodes.current.get(node.id)) return
-                    return nodes.current.add({ id: node.id, label: '' })
+                    return nodes.current.add({ id: node.id, label: node.label })
                 })
                 relationships.forEach(rel => {
                     const id0 = rel.id as string

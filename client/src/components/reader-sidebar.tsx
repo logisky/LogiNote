@@ -6,12 +6,15 @@ import {
     ListItemIcon,
     ListItemText,
     Box,
+    Grid,
+    Divider,
 } from '@material-ui/core'
 import NoteIcon from '@material-ui/icons/Note'
 import HighlightIcon from '@material-ui/icons/Highlight'
 import HighlightSentenceViewer from './highlight-sentence-viewer'
 import { useNotifierContext } from './reader-notifier'
 import { HighlightArea } from '@loginote/types'
+import { ExitToApp } from '@material-ui/icons'
 
 export const Sidebar: React.FC<{ jumpTo: (ha: HighlightArea) => void }> = ({
     jumpTo,
@@ -22,43 +25,44 @@ export const Sidebar: React.FC<{ jumpTo: (ha: HighlightArea) => void }> = ({
         switch (page) {
             case 'notes':
                 return (
-                    <Box p={2}>
-                        <List>
-                            {sentences.map((s, i) => (
-                                <ListItem
-                                    button
-                                    key={i}
-                                    onClick={() => {
-                                        if (s.source) {
-                                            console.log(
-                                                s.source.highlightAreas[0]
-                                            )
-                                            jumpTo(s.source.highlightAreas[0])
-                                        }
-                                    }}
-                                >
-                                    <ListItemText
-                                        primary={s.content}
-                                    ></ListItemText>
-                                </ListItem>
-                            ))}
-                        </List>
-                    </Box>
+                    <List style={{ maxWidth: '100%', whiteSpace: 'nowrap' }}>
+                        {sentences.map((s, i) => (
+                            <ListItem
+                                button
+                                key={i}
+                                style={{
+                                    maxHeight: '100%',
+                                    maxWidth: '100%',
+                                    overflowX: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                }}
+                                onClick={() => {
+                                    if (s.source) {
+                                        jumpTo(s.source.highlightAreas[0])
+                                    }
+                                }}
+                            >
+                                <ListItemText
+                                    primary={s.content}
+                                ></ListItemText>
+                            </ListItem>
+                        ))}
+                    </List>
                 )
             case 'highlights':
-                return (
-                    sentenceData && (
-                        <Box p={2}>
-                            <HighlightSentenceViewer
-                                key={sentenceData.sentence}
-                                fileName={sentenceData.fileName}
-                                sentence={sentenceData.sentence}
-                                data={sentenceData.data}
-                                onChange={sentenceData.onChange}
-                            />
-                        </Box>
+                if (!sentenceData) {
+                    return <Grid style={{ maxWidth: '100%' }}></Grid>
+                } else {
+                    return (
+                        <HighlightSentenceViewer
+                            key={sentenceData.sentence}
+                            fileName={sentenceData.fileName}
+                            sentence={sentenceData.sentence}
+                            data={sentenceData.data}
+                            onChange={sentenceData.onChange}
+                        />
                     )
-                )
+                }
             default:
                 return <Box p={2}>Home Content</Box>
         }
@@ -66,27 +70,53 @@ export const Sidebar: React.FC<{ jumpTo: (ha: HighlightArea) => void }> = ({
 
     return (
         <Drawer variant="permanent" style={{ width: '100%', height: '100%' }}>
-            <Box display="flex" flexDirection="column" height="100%">
-                {' '}
-                <List>
-                    <ListItem button onClick={() => setActiveTab('notes')}>
-                        <ListItemIcon>
-                            <NoteIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Notes" />
-                    </ListItem>
-                    <ListItem button onClick={() => setActiveTab('highlights')}>
-                        <ListItemIcon>
-                            <HighlightIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Highlights" />{' '}
-                    </ListItem>
-                </List>
-                <Box flexGrow={1} overflow="auto">
+            <Grid
+                container
+                style={{
+                    flexWrap: 'nowrap',
+                    height: '100%',
+                    width: '100%',
+                }}
+            >
+                <Grid
+                    item
+                    xs={2}
+                    style={{ backgroundColor: '#f4f4f4', width: '100%' }}
+                >
                     {' '}
+                    <List>
+                        <ListItem button onClick={() => setActiveTab('notes')}>
+                            <ListItemIcon>
+                                <NoteIcon />
+                            </ListItemIcon>
+                        </ListItem>
+                        <ListItem
+                            button
+                            onClick={() => setActiveTab('highlights')}
+                        >
+                            <ListItemIcon>
+                                <HighlightIcon />
+                            </ListItemIcon>
+                        </ListItem>
+                    </List>
+                    <Divider></Divider>
+                    <List
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column-reverse',
+                        }}
+                    >
+                        <ListItem button onClick={() => {}}>
+                            <ListItemIcon>
+                                <ExitToApp />
+                            </ListItemIcon>
+                        </ListItem>
+                    </List>
+                </Grid>
+                <Grid item xs={9} style={{ width: '100%', flexWrap: 'nowrap' }}>
                     {renderContent()}
-                </Box>
-            </Box>
+                </Grid>
+            </Grid>
         </Drawer>
     )
 }

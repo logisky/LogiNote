@@ -32,7 +32,7 @@ const NavigatorBar: React.FC<NavbarProps> = ({ noteDir, onChangeDir }) => {
         <AppBar position="static">
             <Toolbar>
                 <Typography variant="h6" className={classes.title}>
-                    Logo - {noteDir}
+                    LogiNote - {noteDir}
                 </Typography>
                 <Button color="inherit" onClick={handleSelectDirectory}>
                     Change Directory

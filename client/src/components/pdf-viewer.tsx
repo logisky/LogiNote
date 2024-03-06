@@ -148,7 +148,6 @@ const PdfViewer: React.FC = () => {
             <Grid item xs={3} className={classes.notesSection}>
                 <Sidebar
                     jumpTo={(area: HighlightArea) => {
-                        console.log('jumping')
                         jumpToHighlightArea(area)
                     }}
                 ></Sidebar>
