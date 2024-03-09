@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { DailyProgress } from '@loginote/types'
+import { DailyProgress, SentenceId } from '@loginote/types'
 import ApiClient from '../core/api_client'
 import {
     Card,
@@ -9,17 +9,40 @@ import {
     ListItem,
     ListItemText,
     Collapse,
+    Button,
+    Modal,
 } from '@material-ui/core'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
+import SentenceCheckComponent from './sentence-check'
 
 interface DailyProgressViewerProps {
     date: string
 }
 
+const StartSentenceCheckComponent: React.FC<DailyProgressViewerProps> = ({
+    date,
+}) => {
+    const [sentenceId, setSentenceId] = useState<SentenceId | null>(null)
+    useEffect(() => {
+        ApiClient.getRandomSentence(date).then(id => {
+            if (id >= 0) {
+                setSentenceId(id)
+            } else {
+                setSentenceId(null)
+            }
+        })
+    }, [date])
+
+    if (sentenceId === null) return null
+
+    return <SentenceCheckComponent id={sentenceId}></SentenceCheckComponent>
+}
+
 const DailyProgressViewer: React.FC<DailyProgressViewerProps> = ({ date }) => {
     const [progress, setProgress] = useState<DailyProgress | null>(null)
-    const [open, setOpen] = useState(false)
+    const [extendOpen, setExtendOpen] = useState(false)
+    const [sentenceCheckOpen, setSenetenceCheckOpen] = useState(false)
 
     useEffect(() => {
         ApiClient.getDailyProgress(date)
@@ -32,7 +55,7 @@ const DailyProgressViewer: React.FC<DailyProgressViewerProps> = ({ date }) => {
     }, [date])
 
     const handleToggleDetails = () => {
-        setOpen(!open)
+        setExtendOpen(!extendOpen)
     }
 
     if (!progress) {
@@ -48,9 +71,10 @@ const DailyProgressViewer: React.FC<DailyProgressViewerProps> = ({ date }) => {
                     onClick={handleToggleDetails}
                     style={{ cursor: 'pointer' }}
                 >
-                    {date} {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    {date}{' '}
+                    {extendOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                 </Typography>
-                <Collapse in={open}>
+                <Collapse in={extendOpen}>
                     <Typography variant="body2" component="p">
                         New Words: {progress.newWords.size}
                     </Typography>
@@ -62,6 +86,26 @@ const DailyProgressViewer: React.FC<DailyProgressViewerProps> = ({ date }) => {
                         ))}
                     </List>
                 </Collapse>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setSenetenceCheckOpen(true)}
+                >
+                    Start 1 Sentence Check
+                </Button>
+                <Modal
+                    open={sentenceCheckOpen}
+                    aria-labelledby="modal-title"
+                    aria-describedby="modal-description"
+                    style={{ backdropFilter: 'blur(3px) grayscale(90%)' }}
+                    onClose={() => {
+                        setSenetenceCheckOpen(false)
+                    }}
+                >
+                    <StartSentenceCheckComponent
+                        date={date}
+                    ></StartSentenceCheckComponent>
+                </Modal>
             </CardContent>
         </Card>
     )

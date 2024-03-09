@@ -93,6 +93,10 @@ class ApiClient {
         return this.makeRequest(`/search/vocabulary/${word}`, 'GET')
     }
 
+    static async getRandomSentence(date: string): Promise<SentenceId> {
+        return this.makeRequest(`/random_sentence/${date}`, 'GET')
+    }
+
     static async makeRequest<T>(
         path: string,
         method: string,

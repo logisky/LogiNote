@@ -191,6 +191,12 @@ app.get('/search/vocabulary/:word', async (req, res) => {
     res.json(result)
 })
 
+app.get('/random_sentence/:date', async (req, res) => {
+    const { date } = req.params
+    const result = dataManager.getRandomSentenceId(date)
+    res.json(result)
+})
+
 app.post('/clean', async (req, res) => {
     const { sentence } = req.body
     res.json(sentence)

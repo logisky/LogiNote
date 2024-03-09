@@ -15,11 +15,13 @@ import HighlightSentenceViewer from './highlight-sentence-viewer'
 import { useNotifierContext } from './reader-notifier'
 import { HighlightArea } from '@loginote/types'
 import { ExitToApp } from '@material-ui/icons'
+import { useNavigate } from 'react-router-dom'
 
 export const Sidebar: React.FC<{ jumpTo: (ha: HighlightArea) => void }> = ({
     jumpTo,
 }) => {
     const { page, sentenceData, setActiveTab, sentences } = useNotifierContext()
+    const navigate = useNavigate()
 
     const renderContent = () => {
         switch (page) {
@@ -106,7 +108,12 @@ export const Sidebar: React.FC<{ jumpTo: (ha: HighlightArea) => void }> = ({
                             flexDirection: 'column-reverse',
                         }}
                     >
-                        <ListItem button onClick={() => {}}>
+                        <ListItem
+                            button
+                            onClick={() => {
+                                navigate('/')
+                            }}
+                        >
                             <ListItemIcon>
                                 <ExitToApp />
                             </ListItemIcon>

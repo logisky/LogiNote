@@ -67,18 +67,6 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
             .catch(e => {
                 console.error(e)
             })
-        // ApiClient.clean(sentence)
-        //     .then(v => {
-        //         setEditedSentence(v)
-        //         setWords(v.split(' '))
-        //         return ApiClient.translate(v)
-        //     })
-        //     .then(translation => {
-        //         setEditedTranslation(translation)
-        //     })
-        //     .catch(e => {
-        //         console.error(e)
-        //     })
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editedSentence])
 

@@ -1,10 +1,7 @@
 import {
-    Vocabulary0,
     Sentence,
     DailyProgress,
     VocabularySet,
-    NotebookMetadata,
-    ErrorMessage,
     RootLogiNote,
     SentenceId,
     VocabularyNode,
@@ -43,6 +40,8 @@ class DataManager {
         goodExprIds: new Set<number>(),
         articles: new Set<string>(),
     }
+
+    private randomSentences: Map<string, SentenceId[]> = new Map()
 
     public getUploadPath(): string {
         return path.join(this.noteDirectory, 'files')
@@ -315,6 +314,32 @@ class DataManager {
         return this.loadData<VocabularyNode>('vocabularies_node', word)
     }
 
+    async getRandomSentenceId(date: string): Promise<SentenceId> {
+        if (date === '') {
+            // unimlemented now
+            return -1
+        }
+        const sentences = this.randomSentences.get(date)
+        if (sentences && sentences.length > 0) {
+            const result = sentences[0]
+            this.randomSentences.set(date, sentences.slice(1))
+            return result
+        }
+
+        const progress = this.getDailyProgress(date)
+        return progress
+            .then(p => {
+                if (!p) return -1
+
+                const sentences = shuffleArray(Array.from(p.sentences))
+                this.randomSentences.set(date, sentences.slice(1))
+                return sentences[0]
+            })
+            .catch(_e => {
+                return -1
+            })
+    }
+
     async addVocabularyNode(
         word: string,
         sentenceIds: SentenceId[]
@@ -375,6 +400,23 @@ const getCurrentDateString = () => {
     const month = (now.getMonth() + 1).toString().padStart(2, '0')
     const day = now.getDate().toString().padStart(2, '0')
     return `${year}-${month}-${day}`
+}
+
+function shuffleArray<T>(array: T[]): T[] {
+    let currentIndex = array.length,
+        temporaryValue,
+        randomIndex
+
+    while (0 !== currentIndex) {
+        randomIndex = Math.floor(Math.random() * currentIndex)
+        currentIndex -= 1
+
+        temporaryValue = array[currentIndex]
+        array[currentIndex] = array[randomIndex]
+        array[randomIndex] = temporaryValue
+    }
+
+    return array
 }
 
 export default DataManager
