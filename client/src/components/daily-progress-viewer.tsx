@@ -26,6 +26,7 @@ const StartSentenceCheckComponent: React.FC<DailyProgressViewerProps> = ({
     const [sentenceId, setSentenceId] = useState<SentenceId | null>(null)
     useEffect(() => {
         ApiClient.getRandomSentence(date).then(id => {
+            console.log(id)
             if (id >= 0) {
                 setSentenceId(id)
             } else {
@@ -76,7 +77,7 @@ const DailyProgressViewer: React.FC<DailyProgressViewerProps> = ({ date }) => {
                 </Typography>
                 <Collapse in={extendOpen}>
                     <Typography variant="body2" component="p">
-                        New Words: {progress.newWords.size}
+                        New Words: {progress.newWords.length}
                     </Typography>
                     <List dense>
                         {Array.from(progress.newWords).map((word, index) => (

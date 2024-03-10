@@ -200,12 +200,13 @@ app.get('/search/stardict/:word', async (req, res) => {
 
 app.get('/random_sentence/:date', async (req, res) => {
     const { date } = req.params
-    const result = dataManager.getRandomSentenceId(date)
+    const result = await dataManager.getRandomSentenceId(date)
     res.json(result)
 })
 
 app.post('/clean', async (req, res) => {
-    const result = cleanText2(req.body)
+    const { sentence } = req.body
+    const result = cleanText2(sentence)
     res.json(result)
 })
 

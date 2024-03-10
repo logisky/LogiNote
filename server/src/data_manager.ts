@@ -25,36 +25,38 @@ const SUB_DIRECTORIES = [
 ]
 
 class DataManager {
-    private noteDirectory: string = ''
-    private loginote: RootLogiNote = {
+    private _noteDirectory: string = ''
+    private _loginote: RootLogiNote = {
         createdDate: '',
         sentenceId: 0,
         setId: 0,
     }
 
-    private todayProgress = {
+    private _todayProgress: DailyProgress = {
         date: getCurrentDateString(),
-        newWords: new Set<string>(),
-        sentences: new Set<SentenceId>(),
-        updatedSetIds: new Set<number>(),
-        goodExprIds: new Set<number>(),
-        articles: new Set<string>(),
+        newWords: [],
+        sentences: [],
+        updatedSetIds: [],
+        goodExprIds: [],
+        articles: [],
     }
 
     private randomSentences: Map<string, SentenceId[]> = new Map()
 
     public getUploadPath(): string {
-        return path.join(this.noteDirectory, 'files')
+        return path.join(this._noteDirectory, 'files')
     }
 
     public async setNoteDirectory(dir: string): Promise<TotalProgress | null> {
-        this.noteDirectory = dir
-        const loginoteFilePath = path.join(this.noteDirectory, '.loginote')
+        this._noteDirectory = dir
+        const loginoteFilePath = path.join(this._noteDirectory, '.loginote')
 
         try {
             if (!fs.existsSync(loginoteFilePath)) {
                 await this.initializeDirectories()
             }
+            const note = await this.loadData<RootLogiNote>('.', '.loginote')
+            this._loginote = note as RootLogiNote
             return this.getTotalProgress()
         } catch (error) {
             console.error(error)
@@ -64,7 +66,7 @@ class DataManager {
 
     public async getFiles(): Promise<FileInfo[]> {
         try {
-            const directoryPath = path.join(this.noteDirectory, 'files')
+            const directoryPath = path.join(this._noteDirectory, 'files')
             console.log(directoryPath)
             const files = await fsp.readdir(directoryPath)
             return files
@@ -80,7 +82,7 @@ class DataManager {
     public async getTotalProgress(): Promise<TotalProgress | null> {
         try {
             const directoryPath = path.join(
-                this.noteDirectory,
+                this._noteDirectory,
                 'daily_progresses'
             )
             const files = await fsp.readdir(directoryPath)
@@ -99,10 +101,10 @@ class DataManager {
                 const progress: DailyProgress = JSON.parse(content)
                 console.log(progress)
 
-                total.articles += progress.articles.size ?? 0
-                total.sets += progress.updatedSetIds.size ?? 0
-                total.sentences += progress.sentences.size ?? 0
-                total.words += progress.newWords.size ?? 0
+                total.articles += progress.articles.length ?? 0
+                total.sets += progress.updatedSetIds.length ?? 0
+                total.sentences += progress.sentences.length ?? 0
+                total.words += progress.newWords.length ?? 0
 
                 dates.push(progress.date)
             }
@@ -116,17 +118,17 @@ class DataManager {
     }
 
     private async flushNote(): Promise<void> {
-        if (this.loginote) this.saveData('.', '.loginote', this.loginote)
+        this.saveData('', '.loginote', this._loginote)
     }
 
     private async initializeDirectories(): Promise<void> {
         for (const dir of SUB_DIRECTORIES) {
-            const dirPath = path.join(this.noteDirectory, dir)
+            const dirPath = path.join(this._noteDirectory, dir)
             if (!fs.existsSync(dirPath)) {
                 await fs.promises.mkdir(dirPath, { recursive: true })
             }
         }
-        const loginoteFilePath = path.join(this.noteDirectory, '.loginote')
+        const loginoteFilePath = path.join(this._noteDirectory, '.loginote')
         if (!fs.existsSync(loginoteFilePath)) {
             const ln: RootLogiNote = {
                 createdDate: getCurrentDateString(),
@@ -147,7 +149,7 @@ class DataManager {
         data: any
     ): Promise<boolean> {
         const filePath = path.join(
-            this.noteDirectory,
+            this._noteDirectory,
             folder,
             `${fileName}.json`
         )
@@ -169,7 +171,7 @@ class DataManager {
         fileName: string
     ): Promise<T | null> {
         const filePath = path.join(
-            this.noteDirectory,
+            this._noteDirectory,
             folder,
             `${fileName}.json`
         )
@@ -224,7 +226,7 @@ class DataManager {
     }
 
     getFile(name: string): ReadStream | null {
-        const filePath = path.join(this.noteDirectory, 'files', `${name}`)
+        const filePath = path.join(this._noteDirectory, 'files', `${name}`)
         if (fs.existsSync(filePath)) {
             return fs.createReadStream(filePath)
         }
@@ -232,7 +234,7 @@ class DataManager {
     }
 
     getFileExists(name: string): boolean {
-        const filePath = path.join(this.noteDirectory, 'files', `${name}`)
+        const filePath = path.join(this._noteDirectory, 'files', `${name}`)
         return fs.existsSync(filePath)
     }
 
@@ -243,7 +245,9 @@ class DataManager {
             vocabulary
         ).then(valid => {
             if (!valid) return false
-            this.todayProgress.newWords.add(vocabulary?.vocabulary0?.word ?? '')
+            this._todayProgress.newWords.push(
+                vocabulary?.vocabulary0?.word ?? ''
+            )
             this.flushProgress()
             return true
         })
@@ -254,38 +258,38 @@ class DataManager {
     }
 
     async postSentence(sentence: Sentence): Promise<boolean> {
-        if (sentence.id < 0) sentence.id = this.loginote.sentenceId
+        if (sentence.id < 0) sentence.id = this._loginote.sentenceId
 
         return this.saveData(
             'sentences',
             sentence.id.toString(),
             sentence
-        ).then(valid => {
+        ).then(async valid => {
             if (!valid) return false
-            if (this.loginote.sentenceId == sentence.id) {
-                this.loginote.sentenceId + 1
-                this.flushNote()
+            if (this._loginote.sentenceId == sentence.id) {
+                this._loginote.sentenceId += 1
+                await this.flushNote()
             }
             // Set vocabulary nodes
-            sentence.words.forEach(w => {
-                this.addVocabularyNode(w, [sentence.id])
+            sentence.words.forEach(async w => {
+                await this.addVocabularyNode(w, [sentence.id])
             })
 
             // Set file nodes
             if (sentence.source) {
                 const path = sentence.source.filePath
-                this.getFileNode(path).then(v => {
+                this.getFileNode(path).then(async v => {
                     const node: FileNode = v ?? {
                         file: path,
                         sentences: [],
                     }
                     node.sentences.push(sentence.id)
-                    this.postFileNode(node)
+                    await this.postFileNode(node)
                 })
             }
 
-            this.todayProgress.sentences.add(sentence.id)
-            this.flushProgress()
+            this._todayProgress.sentences.push(sentence.id)
+            await this.flushProgress()
             return true
         })
     }
@@ -295,15 +299,15 @@ class DataManager {
     }
 
     async postVocabularySet(set: VocabularySet): Promise<boolean | null> {
-        if (set.setId < 0) set.setId = this.loginote.setId
+        if (set.setId < 0) set.setId = this._loginote.setId
         return this.saveData('vocabulary_sets', set.setId.toString(), set).then(
             valid => {
                 if (!valid) return false
-                if (this.loginote.setId == set.setId) {
-                    this.loginote.setId + 1
+                if (this._loginote.setId == set.setId) {
+                    this._loginote.setId += 1
                     this.flushNote()
                 }
-                this.todayProgress.updatedSetIds.add(set.setId)
+                this._todayProgress.updatedSetIds.push(set.setId)
                 this.flushProgress()
                 return true
             }
@@ -332,7 +336,9 @@ class DataManager {
                 if (!p) return -1
 
                 const sentences = shuffleArray(Array.from(p.sentences))
+                if (sentences.length === 0) return -1
                 this.randomSentences.set(date, sentences.slice(1))
+                console.log(`random sentence id: ${sentences[0]}`)
                 return sentences[0]
             })
             .catch(_e => {
@@ -386,10 +392,22 @@ class DataManager {
     }
 
     async flushProgress(): Promise<boolean | null> {
+        console.log('writing:', this._todayProgress)
+        const cleaned: DailyProgress = {
+            date: this._todayProgress.date,
+            newWords: Array.from(new Set(this._todayProgress.newWords)),
+            sentences: Array.from(new Set(this._todayProgress.sentences)),
+            updatedSetIds: Array.from(
+                new Set(this._todayProgress.updatedSetIds)
+            ),
+            goodExprIds: Array.from(new Set(this._todayProgress.goodExprIds)),
+            articles: Array.from(new Set(this._todayProgress.articles)),
+        }
+        this._todayProgress = cleaned
         return this.saveData(
             'daily_progresses',
-            this.todayProgress.date,
-            this.todayProgress
+            this._todayProgress.date,
+            this._todayProgress
         )
     }
 }

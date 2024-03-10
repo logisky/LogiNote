@@ -1,5 +1,5 @@
 import React, { useState, useEffect, MouseEvent } from 'react'
-import { Button, Chip } from '@material-ui/core'
+import { Box, Button, Chip, Container, Typography } from '@material-ui/core'
 import { Sentence, SentenceId } from '@loginote/types'
 import ApiClient from '../core/api_client'
 import VocabularyViewer from './vocabulary-viewer'
@@ -40,39 +40,71 @@ const SentenceCheckComponent: React.FC<SentenceCheckComponentProps> = ({
 
     return (
         sentence && (
-            <div>
-                <p>{sentence.translation}</p>
-                {showDetails && (
-                    <>
-                        <p>{sentence.content}</p>
-                        <div>
-                            {sentence.words.map((word, index) => (
-                                <Chip
-                                    key={index}
-                                    label={word}
-                                    onClick={e => handleWordClick(e, word)}
-                                />
-                            ))}
-                        </div>
-                    </>
-                )}
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setShowDetails(!showDetails)}
+            <Container
+                maxWidth="sm"
+                style={{
+                    backgroundColor: '#f5f5f5',
+                    marginTop: '20px',
+                    padding: '20px',
+                    borderRadius: '10px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                }}
+            >
+                <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
                 >
-                    {showDetails ? '隐藏细节' : '显示所有内容'}
-                </Button>
-                {word && (
-                    <VocabularyViewer
-                        word={word}
-                        wordAddedToNote={() => {}}
-                        modalStyle={modalStyle}
-                        open={true}
-                        onClose={() => setWord('')}
-                    ></VocabularyViewer>
-                )}
-            </div>
+                    <Typography
+                        variant="body1"
+                        style={{ marginBottom: '20px' }}
+                    >
+                        {sentence.translation}
+                    </Typography>
+                    {showDetails && (
+                        <>
+                            <Typography
+                                variant="body2"
+                                style={{ marginBottom: '10px' }}
+                            >
+                                {sentence.content}
+                            </Typography>
+                            <Box
+                                display="flex"
+                                flexWrap="wrap"
+                                justifyContent="center"
+                            >
+                                {sentence.words.map((word, index) => (
+                                    <Chip
+                                        key={index}
+                                        label={word}
+                                        onClick={e => handleWordClick(e, word)}
+                                        color="primary"
+                                    />
+                                ))}
+                            </Box>
+                        </>
+                    )}
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setShowDetails(!showDetails)}
+                        style={{ marginTop: '20px' }}
+                    >
+                        {showDetails ? 'HIDE' : 'SHOW'}
+                    </Button>
+                    {word && (
+                        <VocabularyViewer
+                            word={word}
+                            wordAddedToNote={() => {}}
+                            modalStyle={modalStyle}
+                            open={true}
+                            onClose={() => setWord('')}
+                        ></VocabularyViewer>
+                    )}
+                </Box>
+            </Container>
         )
     )
 }

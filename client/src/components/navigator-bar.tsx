@@ -42,7 +42,11 @@ const NavigatorBar: React.FC<NavbarProps> = ({ noteDir, onChangeDir }) => {
                 <Button color="inherit" onClick={handleSelectDirectory}>
                     Change Directory
                 </Button>
-                <Button variant="contained" color="primary">
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setOpenDialog(!openDialog)}
+                >
                     Settings
                 </Button>
                 <SettingsDialog

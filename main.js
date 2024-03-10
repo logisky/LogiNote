@@ -42,7 +42,7 @@ let serverProcess = null
 function startServer() {
     const serverPath = join(__dirname, 'server/dist/server.js')
     serverProcess = fork(serverPath)
-    const keys = store.get('baiduApiKeys')
+    const keys = store.get('baiduApiKeys', '')
     getAccessToken(keys.baiduApiKey, keys.baiduSecretKey)
 }
 
@@ -125,19 +125,30 @@ app.on('activate', () => {
 })
 
 function getAccessToken(apiKey, secretKey) {
+    if (apiKey === '' || secretKey === '') return
+
     fetch(
         `https://aip.baidubce.com/oauth/2.0/token?client_id=${apiKey}&client_secret=${secretKey}&grant_type=client_credentials`,
         {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
             },
         }
-    ).then((v) => {
-        store.set('accessToken', v.body)
-        serverProcess.send(v.body)
-    }).catch((e) => {
-        console.error(e)
-    })
+    )
+        .then(v => {
+            v.json()
+                .then(r => {
+                    store.set('accessToken', r.access_token)
+                    console.log(r)
+                    serverProcess.send(r.access_token)
+                })
+                .catch(e => {
+                    console.error(e)
+                })
+        })
+        .catch(e => {
+            console.error(e)
+        })
 }

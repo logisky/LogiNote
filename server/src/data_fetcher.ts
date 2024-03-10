@@ -7,8 +7,9 @@ import {
 
 var ACCESS_TOKEN = ''
 
-process.on('message', (value: { access_token: string }) => {
-    ACCESS_TOKEN = value.access_token
+process.on('message', (value: string) => {
+    console.log('receive: ', value)
+    ACCESS_TOKEN = value
 })
 
 export class DataFetcher {
@@ -17,23 +18,22 @@ export class DataFetcher {
     }
 
     public async translate(text: string): Promise<string> {
+        const url = `https://aip.baidubce.com/rpc/2.0/mt/texttrans-with-dict/v1?access_token=${ACCESS_TOKEN}`
+        console.log(url)
         try {
-            const result = await fetch(
-                `https://aip.baidubce.com/rpc/2.0/mt/texttrans-with-dict/v1?access_token=${ACCESS_TOKEN}`,
-                {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        q: text,
-                        from: 'en',
-                        to: 'zh',
-                    }),
-                    headers: { 'Content-type': 'application/json' },
-                }
-            )
+            const result = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify({
+                    q: text,
+                    from: 'en',
+                    to: 'zh',
+                }),
+                headers: { 'Content-type': 'application/json' },
+            })
             console.log(result.body)
-            const r: { translatedText: string } = await result.json()
+            const r: { result: any } = await result.json()
             console.log(r)
-            return r.translatedText ?? ''
+            return (r.result.trans_result[0].dst as string) ?? ''
         } catch (e) {
             console.error(e)
             return ''
