@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
     AppBar,
     Toolbar,
@@ -6,6 +6,7 @@ import {
     Button,
     makeStyles,
 } from '@material-ui/core'
+import SettingsDialog from './settings'
 
 interface NavbarProps {
     noteDir: string
@@ -20,6 +21,10 @@ const useStyles = makeStyles(() => ({
 
 const NavigatorBar: React.FC<NavbarProps> = ({ noteDir, onChangeDir }) => {
     const classes = useStyles()
+    const [openDialog, setOpenDialog] = useState(false)
+    const handleCloseDialog = () => {
+        setOpenDialog(false)
+    }
 
     const handleSelectDirectory = async () => {
         const path = await window.electron.ipcRenderer.invoke(
@@ -37,6 +42,13 @@ const NavigatorBar: React.FC<NavbarProps> = ({ noteDir, onChangeDir }) => {
                 <Button color="inherit" onClick={handleSelectDirectory}>
                     Change Directory
                 </Button>
+                <Button variant="contained" color="primary">
+                    Settings
+                </Button>
+                <SettingsDialog
+                    open={openDialog}
+                    onClose={handleCloseDialog}
+                ></SettingsDialog>
             </Toolbar>
         </AppBar>
     )

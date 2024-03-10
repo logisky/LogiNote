@@ -5,6 +5,12 @@ import {
     initializeDatabase,
 } from './dictionary2'
 
+var ACCESS_TOKEN = ''
+
+process.on('message', (value: { access_token: string }) => {
+    ACCESS_TOKEN = value.access_token
+})
+
 export class DataFetcher {
     public constructor() {
         initializeDatabase()
@@ -13,14 +19,13 @@ export class DataFetcher {
     public async translate(text: string): Promise<string> {
         try {
             const result = await fetch(
-                'https://www.libretranslate.com/translate',
+                `https://aip.baidubce.com/rpc/2.0/mt/texttrans-with-dict/v1?access_token=${ACCESS_TOKEN}`,
                 {
                     method: 'POST',
                     body: JSON.stringify({
                         q: text,
-                        source: 'en',
-                        target: 'zh',
-                        format: 'text',
+                        from: 'en',
+                        to: 'zh',
                     }),
                     headers: { 'Content-type': 'application/json' },
                 }

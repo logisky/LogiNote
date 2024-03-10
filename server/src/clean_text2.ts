@@ -5,7 +5,6 @@ export function cleanText2(sentence: string): string {
     const parts = sentence.split(/[,.;*?!？！=]+/)
     let result = ''
     parts.forEach((v, i) => {
-        console.log(`part: ${v}`)
         const r = rebuildSentenceWithDroppingWords(v)
         if (i === 0) {
             result = `${r}`

@@ -146,6 +146,9 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
                         <Typography variant="h5" component="h2" gutterBottom>
                             {vocabulary.vocabulary0?.word}
                         </Typography>
+                        <Typography>
+                            {vocabulary.vocabulary1?.translation}
+                        </Typography>
                         {vocabulary.vocabulary0?.phonetics.map(
                             (phonetic, index) => (
                                 <div

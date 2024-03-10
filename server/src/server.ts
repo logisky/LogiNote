@@ -4,6 +4,7 @@ import DataManager from './data_manager'
 import multer from 'multer'
 import DataFetcher from './data_fetcher'
 import { Vocabulary } from '@loginote/types'
+import { cleanText2 } from './clean_text2'
 
 const app = express()
 const port = 3001
@@ -191,6 +192,12 @@ app.get('/search/vocabulary/:word', async (req, res) => {
     res.json(result)
 })
 
+app.get('/search/stardict/:word', async (req, res) => {
+    const { word } = req.params
+    const v1 = await dataFetcher.fetchVocabulary1(word)
+    res.json(v1)
+})
+
 app.get('/random_sentence/:date', async (req, res) => {
     const { date } = req.params
     const result = dataManager.getRandomSentenceId(date)
@@ -198,8 +205,8 @@ app.get('/random_sentence/:date', async (req, res) => {
 })
 
 app.post('/clean', async (req, res) => {
-    const { sentence } = req.body
-    res.json(sentence)
+    const result = cleanText2(req.body)
+    res.json(result)
 })
 
 app.listen(port, () => {

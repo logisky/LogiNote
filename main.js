@@ -26,8 +26,8 @@ function createWindow() {
     })
 
     const startUrl = isDev
-        ? 'http://localhost:3000' // React开发服务器地址
-        : `file://${join(__dirname, 'client/build/index.html')}` // 生产环境的React构建版本地址
+        ? 'http://localhost:3000'
+        : `file://${join(__dirname, 'client/build/index.html')}`
 
     mainWindow.loadURL(startUrl)
 
@@ -42,6 +42,8 @@ let serverProcess = null
 function startServer() {
     const serverPath = join(__dirname, 'server/dist/server.js')
     serverProcess = fork(serverPath)
+    const keys = store.get('baiduApiKeys')
+    getAccessToken(keys.baiduApiKey, keys.baiduSecretKey)
 }
 
 app.on('ready', () => {
@@ -56,6 +58,16 @@ ipcMain.on('get-note-dir', event => {
 })
 ipcMain.on('set-note-dir', (_, newDir) => {
     store.set('noteDir', newDir)
+})
+ipcMain.on('get-baidu-keys', event => {
+    event.returnValue = store.get('baiduApiKeys', {
+        baiduApiKey: '',
+        baiduSecretKey: '',
+    })
+})
+ipcMain.on('set-baidu-keys', (_, value) => {
+    store.set('baiduApiKeys', value)
+    getAccessToken(value.baiduApiKey, value.baiduSecretKey)
 })
 
 ipcMain.handle('open-directory-dialog', async () => {
@@ -111,3 +123,21 @@ app.on('activate', () => {
         createWindow()
     }
 })
+
+function getAccessToken(apiKey, secretKey) {
+    fetch(
+        `https://aip.baidubce.com/oauth/2.0/token?client_id=${apiKey}&client_secret=${secretKey}&grant_type=client_credentials`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        }
+    ).then((v) => {
+        store.set('accessToken', v.body)
+        serverProcess.send(v.body)
+    }).catch((e) => {
+        console.error(e)
+    })
+}

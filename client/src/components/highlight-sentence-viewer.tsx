@@ -60,6 +60,19 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
     const [modalStyle, setModalStyle] = useState({})
 
     useEffect(() => {
+        ApiClient.clean(editedSentence)
+            .then(v => {
+                setEditedSentence(v)
+            })
+            .catch(e => {
+                console.error(e)
+            })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    const { sentences, setSentences, setActiveTab } = useNotifierContext()
+
+    const handleClickTranslate = () => {
         ApiClient.translate(editedSentence)
             .then(v => {
                 setEditedTranslation(v)
@@ -67,10 +80,7 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
             .catch(e => {
                 console.error(e)
             })
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [editedSentence])
-
-    const { sentences, setSentences, setActiveTab } = useNotifierContext()
+    }
 
     const handleEditedSentence = (value: string) => {
         setEditedSentence(value)
@@ -139,6 +149,7 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
                         placeholder="Edit the translation"
                         multiline
                     />
+                    <Button onClick={handleClickTranslate}>Translate</Button>
                     <div>
                         {words.map((word, index) => (
                             <Chip
