@@ -18,7 +18,7 @@ export class DataFetcher {
     }
 
     public async translate(text: string): Promise<string> {
-        const url = `https://aip.baidubce.com/rpc/2.0/mt/texttrans-with-dict/v1?access_token=${ACCESS_TOKEN}`
+        const url = `https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1?access_token=${ACCESS_TOKEN}`
         console.log(url)
         try {
             const result = await fetch(url, {

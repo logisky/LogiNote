@@ -22,6 +22,7 @@ const SUB_DIRECTORIES = [
     'sentences',
     'daily_progresses',
     'vocabulary_sets',
+    '.metadata',
 ]
 
 class DataManager {
@@ -55,7 +56,10 @@ class DataManager {
             if (!fs.existsSync(loginoteFilePath)) {
                 await this.initializeDirectories()
             }
-            const note = await this.loadData<RootLogiNote>('.', '.loginote')
+            const note = await this.loadData<RootLogiNote>(
+                '.metadata',
+                '.loginote'
+            )
             this._loginote = note as RootLogiNote
             return this.getTotalProgress()
         } catch (error) {
@@ -118,7 +122,7 @@ class DataManager {
     }
 
     private async flushNote(): Promise<void> {
-        this.saveData('', '.loginote', this._loginote)
+        this.saveData('.metadata', '.loginote', this._loginote)
     }
 
     private async initializeDirectories(): Promise<void> {
