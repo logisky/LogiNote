@@ -132,7 +132,11 @@ class DataManager {
                 await fs.promises.mkdir(dirPath, { recursive: true })
             }
         }
-        const loginoteFilePath = path.join(this._noteDirectory, '.loginote')
+        const loginoteFilePath = path.join(
+            this._noteDirectory,
+            '.metadata',
+            '.loginote'
+        )
         if (!fs.existsSync(loginoteFilePath)) {
             const ln: RootLogiNote = {
                 createdDate: getCurrentDateString(),

@@ -32,6 +32,7 @@ const useStyles = makeStyles(theme => ({
         borderBottom: `1px solid ${theme.palette.divider}`,
         cursor: 'pointer',
         padding: theme.spacing(1),
+        width: '100%',
     },
     quote: {
         borderLeft: `4px solid ${theme.palette.divider}`,

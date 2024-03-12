@@ -18,8 +18,9 @@ const useSentenceStyles = makeStyles({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '20px',
+        gap: '30px',
         marginTop: '20px',
+        marginLeft: '10px',
     },
     inputHover: {
         '&:hover': {
@@ -34,8 +35,8 @@ const useSentenceStyles = makeStyles({
 const useContainerStyles = makeStyles({
     root: {
         display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'flex-start',
+        flexDirection: 'column',
+        alignItems: 'center',
     },
     viewer: {
         marginLeft: '20px', // Add some space between the components
@@ -125,53 +126,51 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
 
     return (
         <Grid container className={containerClasses.root}>
-            <Grid item>
-                <div className={classes.root}>
-                    <TextField
-                        value={editedSentence}
-                        onChange={e => handleEditedSentence(e.target.value)}
-                        variant="outlined"
-                        fullWidth
-                        InputProps={{
-                            className: classes.inputHover,
-                        }}
-                        placeholder="Edit the sentence"
-                        multiline
-                    />
-                    <TextField
-                        value={editedTranslation}
-                        onChange={e => setEditedTranslation(e.target.value)}
-                        variant="outlined"
-                        fullWidth
-                        InputProps={{
-                            className: classes.inputHover,
-                        }}
-                        placeholder="Edit the translation"
-                        multiline
-                    />
-                    <Button onClick={handleClickTranslate}>Translate</Button>
-                    <div>
-                        {words.map((word, index) => (
-                            <Chip
-                                key={index}
-                                label={word}
-                                onClick={e => handleWordClick(e, word)}
-                                className={
-                                    selectedWord === word
-                                        ? classes.selectedWord
-                                        : ''
-                                }
-                            />
-                        ))}
-                    </div>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleSubmit}
-                    >
-                        Add to your note
-                    </Button>
+            <Grid item className={classes.root}>
+                <TextField
+                    value={editedSentence}
+                    onChange={e => handleEditedSentence(e.target.value)}
+                    variant="outlined"
+                    fullWidth
+                    InputProps={{
+                        className: classes.inputHover,
+                    }}
+                    placeholder="Edit the sentence"
+                    multiline
+                />
+                <TextField
+                    value={editedTranslation}
+                    onChange={e => setEditedTranslation(e.target.value)}
+                    variant="outlined"
+                    fullWidth
+                    InputProps={{
+                        className: classes.inputHover,
+                    }}
+                    placeholder="Edit the translation"
+                    multiline
+                />
+                <Button onClick={handleClickTranslate}>Translate</Button>
+                <div>
+                    {words.map((word, index) => (
+                        <Chip
+                            key={index}
+                            label={word}
+                            onClick={e => handleWordClick(e, word)}
+                            className={
+                                selectedWord === word
+                                    ? classes.selectedWord
+                                    : ''
+                            }
+                        />
+                    ))}
                 </div>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSubmit}
+                >
+                    Add to your note
+                </Button>
             </Grid>
             <Grid item className={containerClasses.viewer}>
                 {showVocabulary && selectedWord && (
