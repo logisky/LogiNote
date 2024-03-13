@@ -50,17 +50,19 @@ class DataManager {
 
     public async setNoteDirectory(dir: string): Promise<TotalProgress | null> {
         this._noteDirectory = dir
-        const loginoteFilePath = path.join(this._noteDirectory, '.loginote')
+        const loginoteFilePath = path.join(
+            this._noteDirectory,
+            '.metadata',
+            '.loginote'
+        )
 
         try {
             if (!fs.existsSync(loginoteFilePath)) {
                 await this.initializeDirectories()
             }
-            const note = await this.loadData<RootLogiNote>(
-                '.metadata',
-                '.loginote'
-            )
-            this._loginote = note as RootLogiNote
+            const data = await fs.promises.readFile(loginoteFilePath, 'utf8')
+            const note = JSON.parse(data) as RootLogiNote
+            this._loginote = note
             return this.getTotalProgress()
         } catch (error) {
             console.error(error)
