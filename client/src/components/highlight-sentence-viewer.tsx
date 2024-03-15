@@ -63,7 +63,7 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
     useEffect(() => {
         ApiClient.clean(editedSentence)
             .then(v => {
-                setEditedSentence(v)
+                handleEditedSentence(v)
             })
             .catch(e => {
                 console.error(e)
@@ -85,7 +85,10 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
 
     const handleEditedSentence = (value: string) => {
         setEditedSentence(value)
-        const words = value.split(' ')
+        const words = value
+            .split(' ')
+            .map(s => s.trim())
+            .filter(s => s !== '')
         setWords(words)
         setSelectedWord(null)
     }

@@ -124,7 +124,16 @@ class DataManager {
     }
 
     private async flushNote(): Promise<void> {
-        this.saveData('.metadata', '.loginote', this._loginote)
+        const loginoteFilePath = path.join(
+            this._noteDirectory,
+            '.metadata',
+            '.loginote'
+        )
+        await fs.promises.writeFile(
+            loginoteFilePath,
+            JSON.stringify(this._loginote, null, 2),
+            'utf8'
+        )
     }
 
     private async initializeDirectories(): Promise<void> {
@@ -348,7 +357,6 @@ class DataManager {
                 const sentences = shuffleArray(Array.from(p.sentences))
                 if (sentences.length === 0) return -1
                 this.randomSentences.set(date, sentences.slice(1))
-                console.log(`random sentence id: ${sentences[0]}`)
                 return sentences[0]
             })
             .catch(_e => {

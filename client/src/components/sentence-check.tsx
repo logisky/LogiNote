@@ -58,7 +58,7 @@ const SentenceCheckComponent: React.FC<SentenceCheckComponentProps> = ({
                 >
                     <Typography
                         variant="body1"
-                        style={{ marginBottom: '20px' }}
+                        style={{ marginBottom: '20px', fontSize: 'large' }}
                     >
                         {sentence.translation}
                     </Typography>
@@ -66,7 +66,10 @@ const SentenceCheckComponent: React.FC<SentenceCheckComponentProps> = ({
                         <>
                             <Typography
                                 variant="body2"
-                                style={{ marginBottom: '10px' }}
+                                style={{
+                                    marginBottom: '10px',
+                                    fontSize: 'large',
+                                }}
                             >
                                 {sentence.content}
                             </Typography>
