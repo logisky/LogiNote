@@ -7,25 +7,37 @@
         "server",
         "types"
     ],
+    "main": "main.js",
     "type": "module",
     "scripts": {
         "build": "npm run build --workspaces",
         "test": "npm run test --workspaces",
         "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron main.js",
         "electron-pack": "npm run build && electron-builder --dir",
-        "postinstall": "electron-builder install-app-deps"
+        "postinstall": "electron-builder install-app-deps",
+        "start": "electron-forge start",
+        "package": "electron-forge package",
+        "make": "electron-forge make"
     },
     "dependencies": {
-        "electron": "^29.0.0",
         "electron-is-dev": "^3.0.1",
+        "electron-squirrel-startup": "^1.0.0",
         "electron-store": "^8.1.0",
         "form-data": "^4.0.0",
         "node-fetch": "^3.3.2",
         "ts-node": "^10.9.2"
     },
     "devDependencies": {
+        "@electron-forge/cli": "^7.3.0",
+        "@electron-forge/maker-deb": "^7.3.0",
+        "@electron-forge/maker-rpm": "^7.3.0",
+        "@electron-forge/maker-squirrel": "^7.3.0",
+        "@electron-forge/maker-zip": "^7.3.0",
+        "@electron-forge/plugin-auto-unpack-natives": "^7.3.0",
+        "@electron-forge/plugin-fuses": "^7.3.0",
+        "@electron/fuses": "^1.7.0",
         "@types/jest": "^29.5.12",
-        "electron-builder": "^24.12.0",
+        "electron": "29.1.4",
         "jest": "^29.7.0",
         "ts-jest": "^29.1.2"
     }
