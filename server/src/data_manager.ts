@@ -42,7 +42,8 @@ class DataManager {
         articles: [],
     }
 
-    private randomSentences: Map<string, SentenceId[]> = new Map()
+    private _dateRandomSentences: Map<string, SentenceId[]> = new Map()
+    private _fileRandomSenetences: Map<string, SentenceId[]> = new Map()
 
     public getUploadPath(): string {
         return path.join(this._noteDirectory, 'files')
@@ -337,15 +338,15 @@ class DataManager {
         return this.loadData<VocabularyNode>('vocabularies_node', word)
     }
 
-    async getRandomSentenceId(date: string): Promise<SentenceId> {
+    async getDateRandomSentenceId(date: string): Promise<SentenceId> {
         if (date === '') {
             // unimlemented now
             return -1
         }
-        const sentences = this.randomSentences.get(date)
+        const sentences = this._dateRandomSentences.get(date)
         if (sentences && sentences.length > 0) {
             const result = sentences[0]
-            this.randomSentences.set(date, sentences.slice(1))
+            this._dateRandomSentences.set(date, sentences.slice(1))
             return result
         }
 
@@ -356,7 +357,30 @@ class DataManager {
 
                 const sentences = shuffleArray(Array.from(p.sentences))
                 if (sentences.length === 0) return -1
-                this.randomSentences.set(date, sentences.slice(1))
+                this._dateRandomSentences.set(date, sentences.slice(1))
+                return sentences[0]
+            })
+            .catch(_e => {
+                return -1
+            })
+    }
+
+    async getFileRandomSentenceId(file: string): Promise<SentenceId> {
+        const sentences = this._fileRandomSenetences.get(file)
+        if (sentences && sentences.length > 0) {
+            const result = sentences[0]
+            this._fileRandomSenetences.set(file, sentences.slice(1))
+            return result
+        }
+
+        const newSensentences = this.getFileSentences(file)
+        return newSensentences
+            .then(f => {
+                if (!f) return -1
+
+                const sentences = shuffleArray(f).map(f => f.id)
+                if (sentences.length === 0) return -1
+                this._fileRandomSenetences.set(file, sentences.slice(1))
                 return sentences[0]
             })
             .catch(_e => {

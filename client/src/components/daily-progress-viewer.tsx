@@ -16,28 +16,32 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ExpandLessIcon from '@material-ui/icons/ExpandLess'
 import SentenceCheckComponent from './sentence-check'
 
-interface DailyProgressViewerProps {
-    date: string
+export interface StartSentenceCheckComponentProps {
+    s: string
+    handle: (s: string) => Promise<SentenceId>
 }
 
-const StartSentenceCheckComponent: React.FC<DailyProgressViewerProps> = ({
-    date,
-}) => {
+export const StartSentenceCheckComponent: React.FC<
+    StartSentenceCheckComponentProps
+> = ({ handle, s }) => {
     const [sentenceId, setSentenceId] = useState<SentenceId | null>(null)
     useEffect(() => {
-        ApiClient.getRandomSentence(date).then(id => {
-            console.log(id)
+        handle(s).then(id => {
             if (id >= 0) {
                 setSentenceId(id)
             } else {
                 setSentenceId(null)
             }
         })
-    }, [date])
+    }, [s, handle])
 
     if (sentenceId === null) return null
 
     return <SentenceCheckComponent id={sentenceId}></SentenceCheckComponent>
+}
+
+interface DailyProgressViewerProps {
+    date: string
 }
 
 const DailyProgressViewer: React.FC<DailyProgressViewerProps> = ({ date }) => {
@@ -104,7 +108,8 @@ const DailyProgressViewer: React.FC<DailyProgressViewerProps> = ({ date }) => {
                     }}
                 >
                     <StartSentenceCheckComponent
-                        date={date}
+                        s={date}
+                        handle={d => ApiClient.getDateRandomSentence(d)}
                     ></StartSentenceCheckComponent>
                 </Modal>
             </CardContent>

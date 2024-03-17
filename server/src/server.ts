@@ -198,9 +198,15 @@ app.get('/search/stardict/:word', async (req, res) => {
     res.json(v1)
 })
 
-app.get('/random_sentence/:date', async (req, res) => {
+app.get('/random_sentence/date/:date', async (req, res) => {
     const { date } = req.params
-    const result = await dataManager.getRandomSentenceId(date)
+    const result = await dataManager.getDateRandomSentenceId(date)
+    res.json(result)
+})
+
+app.get('/random_sentence/file/:file', async (req, res) => {
+    const {file} = req.params
+    const result = await dataManager.getFileRandomSentenceId(file)
     res.json(result)
 })
 
