@@ -9,6 +9,30 @@
     ],
     "main": "main.js",
     "type": "module",
+    "build": {
+        "appId": "com.loginote.app",
+        "files": [
+            "client/build/**/*",
+            "client/package.json",
+            "node_modules/**/*",
+            "server/dist/**/*",
+            "server/package.json",
+            "preload.js",
+            "main.js",
+            "resources/dict/stardict.db",
+            "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+            "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+            "!**/node_modules/*.d.ts",
+            "!**/node_modules/.bin",
+            "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+            "!.editorconfig",
+            "!**/._*",
+            "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+            "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+            "!**/{appveyor.yml,.travis.yml,circle.yml}",
+            "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+        ]
+    },
     "scripts": {
         "build": "npm run build --workspaces",
         "test": "npm run test --workspaces",
@@ -20,6 +44,7 @@
         "make": "electron-forge make"
     },
     "dependencies": {
+        "electron-builder": "^24.13.3",
         "electron-is-dev": "^3.0.1",
         "electron-squirrel-startup": "^1.0.0",
         "electron-store": "^8.1.0",

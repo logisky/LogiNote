@@ -88,7 +88,7 @@ interface VocabularyViewerProps {
     wordAddedToNote: () => void
     modalStyle: React.CSSProperties
     open: boolean
-    onClose: () => void
+    close: () => void
 }
 
 const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
@@ -96,7 +96,7 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
     wordAddedToNote,
     modalStyle,
     open,
-    onClose,
+    close,
 }) => {
     const classes = useStyles()
     const [vocabulary, setVocabulary] = useState<Vocabulary | null>(null)
@@ -116,7 +116,7 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
 
     if (!vocabulary) {
         return (
-            <Modal open={open} onClose={onClose} className={classes.modal}>
+            <Modal open={open} onClose={close} className={classes.modal}>
                 <Card className={classes.errorCard}>
                     <Typography variant="h6" color="error" gutterBottom>
                         Unable to Load Vocabulary
@@ -132,6 +132,7 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
     const handleSubmit = () => {
         ApiClient.postVocabulary(vocabulary)
         wordAddedToNote()
+        close()
     }
 
     const handleExitExporation = () => {
@@ -140,7 +141,7 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
 
     return (
         <div>
-            <Modal open={open} onClose={onClose} className={classes.modal}>
+            <Modal open={open} onClose={close} className={classes.modal}>
                 <Card className={classes.card} style={modalStyle}>
                     <CardContent className={classes.contentScroll}>
                         <Typography variant="h5" component="h2" gutterBottom>

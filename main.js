@@ -33,6 +33,9 @@ function createWindow() {
 
     mainWindow.on('closed', () => {
         mainWindow = null
+        if (serverProcess) {
+            serverProcess.kill()
+        }
     })
 }
 

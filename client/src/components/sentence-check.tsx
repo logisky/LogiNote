@@ -63,32 +63,26 @@ const SentenceCheckComponent: React.FC<SentenceCheckComponentProps> = ({
                         {sentence.translation}
                     </Typography>
                     {showDetails && (
-                        <>
-                            <Typography
-                                variant="body2"
-                                style={{
-                                    marginBottom: '10px',
-                                    fontSize: 'large',
-                                }}
-                            >
-                                {sentence.content}
-                            </Typography>
-                            <Box
-                                display="flex"
-                                flexWrap="wrap"
-                                justifyContent="center"
-                            >
-                                {sentence.words.map((word, index) => (
-                                    <Chip
-                                        key={index}
-                                        label={word}
-                                        onClick={e => handleWordClick(e, word)}
-                                        color="primary"
-                                    />
-                                ))}
-                            </Box>
-                        </>
+                        <Typography
+                            variant="body2"
+                            style={{
+                                marginBottom: '10px',
+                                fontSize: 'large',
+                            }}
+                        >
+                            {sentence.content}
+                        </Typography>
                     )}
+                    <Box display="flex" flexWrap="wrap" justifyContent="center">
+                        {sentence.words.map((word, index) => (
+                            <Chip
+                                key={index}
+                                label={word}
+                                onClick={e => handleWordClick(e, word)}
+                                color="primary"
+                            />
+                        ))}
+                    </Box>
                     <Button
                         variant="contained"
                         color="primary"
@@ -103,7 +97,7 @@ const SentenceCheckComponent: React.FC<SentenceCheckComponentProps> = ({
                             wordAddedToNote={() => {}}
                             modalStyle={modalStyle}
                             open={true}
-                            onClose={() => setWord('')}
+                            close={() => setWord('')}
                         ></VocabularyViewer>
                     )}
                 </Box>

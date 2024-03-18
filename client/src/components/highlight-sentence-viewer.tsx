@@ -182,7 +182,7 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
                         wordAddedToNote={wordAddedToNote}
                         modalStyle={modalStyle}
                         open={showVocabulary}
-                        onClose={() => setShowVocabulary(false)}
+                        close={() => setShowVocabulary(false)}
                     ></VocabularyViewer>
                 )}
             </Grid>
