@@ -5,7 +5,7 @@ import isDev from 'electron-is-dev'
 import Store from 'electron-store'
 import fetch from 'node-fetch'
 
-import {setBaiduToken} from './server/dist/server.js'
+import { setBaiduToken } from './server/dist/server.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -32,9 +32,6 @@ function createWindow() {
 
     mainWindow.on('closed', () => {
         mainWindow = null
-        if (serverProcess) {
-            serverProcess.kill()
-        }
     })
 
     mainWindow.webContents.openDevTools()
@@ -70,29 +67,6 @@ ipcMain.handle('open-directory-dialog', async () => {
     if (result.canceled) return ''
     return result.filePaths[0]
 })
-
-// ipcMain.handle('upload-file', async (_, filePath) => {
-//     const file = fs.createReadStream(filePath)
-//     const formData = new FormData()
-//     formData.append('file', file)
-
-//     try {
-//         const response = await fetch(`http://localhost:3001/file`, {
-//             method: 'POST',
-//             body: formData,
-//             headers: formData.getHeaders(),
-//         })
-
-//         if (!response.ok) {
-//             throw new Error(`Upload failed: ${response.statusText}`)
-//         }
-//         const result = await response.json()
-//         return result
-//     } catch (error) {
-//         console.error('Error uploading file:', error)
-//         throw error
-//     }
-// })
 
 ipcMain.handle('select-file-dialog', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {

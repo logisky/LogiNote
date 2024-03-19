@@ -25,7 +25,7 @@ const SUB_DIRECTORIES = [
     '.metadata',
 ]
 
-class DataManager {
+export class DataManager {
     // abs path
     private _noteDirectory: string = ''
     private _loginote: RootLogiNote = {
@@ -244,14 +244,6 @@ class DataManager {
                 console.error(e)
                 return []
             })
-    }
-
-    getFile(name: string): ReadStream | null {
-        const filePath = path.join(this._noteDirectory, 'files', `${name}`)
-        if (fs.existsSync(filePath)) {
-            return fs.createReadStream(filePath)
-        }
-        return null
     }
 
     getFile2(name: string): Buffer | null {
@@ -506,5 +498,3 @@ function shuffleArray<T>(array: T[]): T[] {
 
     return array
 }
-
-export default DataManager

@@ -15,6 +15,7 @@
             "client/build/**/*",
             "node_modules/**/*",
             "server/dist/**/*",
+            "server/package.json",
             "preload.cjs",
             "main.js",
             "package.json",
@@ -30,14 +31,15 @@
             "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
             "!**/{appveyor.yml,.travis.yml,circle.yml}",
             "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
-        ]
+        ],
+        "includeSubNodeModules": false
     },
     "scripts": {
         "build": "npm run build --workspaces",
         "test": "npm run test --workspaces",
         "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron main.js",
         "electron-pack": "npm run build && electron-builder --dir",
-        "postinstall": "electron-builder install-app-deps",
+        "postinstall": "npx electron-builder install-app-deps",
         "start": "electron-forge start",
         "package": "electron-forge package",
         "make": "electron-forge make"
@@ -48,10 +50,12 @@
         "electron-store": "^8.1.0",
         "form-data": "^4.0.0",
         "node-fetch": "^3.3.2",
+        "simple-spellchecker": "^1.0.2",
+        "sqlite": "^5.1.1",
+        "sqlite3": "^5.1.7",
         "ts-node": "^10.9.2"
     },
     "devDependencies": {
-        "electron-builder": "^24.13.3",
         "@electron-forge/cli": "^7.3.0",
         "@electron-forge/maker-deb": "^7.3.0",
         "@electron-forge/maker-rpm": "^7.3.0",
@@ -62,6 +66,8 @@
         "@electron/fuses": "^1.7.0",
         "@types/jest": "^29.5.12",
         "electron": "29.1.4",
+        "electron-builder": "^24.13.3",
+        "electron-rebuild": "^3.2.9",
         "jest": "^29.7.0",
         "ts-jest": "^29.1.2"
     }

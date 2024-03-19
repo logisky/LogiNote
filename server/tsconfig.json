@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "module": "commonjs",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "strict": true,
+    "declaration": true,
     "esModuleInterop": true,
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "rootDir": "./src",
     "outDir": "./dist"
   },
   "include": ["src/**/*"]
 }
-

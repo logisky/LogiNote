@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron'
-import DataFetcher, { setAccessToken } from './data_fetcher'
-import DataManager from './data_manager'
+import { DataFetcher, setAccessToken } from './data_fetcher'
+import { DataManager } from './data_manager'
 import { SentenceId, Vocabulary } from '@loginote/types'
 import { cleanText2 } from './clean_text2'
 
