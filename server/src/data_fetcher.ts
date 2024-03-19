@@ -5,12 +5,16 @@ import {
     initializeDatabase,
 } from './dictionary2'
 
-var ACCESS_TOKEN = ''
+export var ACCESS_TOKEN = ''
 
-process.on('message', (value: string) => {
-    console.log('receive: ', value)
-    ACCESS_TOKEN = value
-})
+// process.on('message', (value: string) => {
+//     console.log('receive: ', value)
+//     ACCESS_TOKEN = value
+// })
+
+export function setAccessToken(s: string) {
+    ACCESS_TOKEN = s
+}
 
 export class DataFetcher {
     public constructor() {

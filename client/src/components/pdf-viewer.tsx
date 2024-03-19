@@ -74,7 +74,9 @@ const PdfViewer: React.FC = () => {
     useEffect(() => {
         ApiClient.getFileExists(filePath).then(v => {
             if (v) {
-                setPdfUrl(ApiClient.getFilePath(filePath))
+                ApiClient.getFilePath(filePath).then(url => {
+                    setPdfUrl(url)
+                })
                 ApiClient.getFileSentences(filePath).then(v => {
                     setSentences(v)
                 })

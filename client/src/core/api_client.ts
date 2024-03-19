@@ -9,119 +9,107 @@ import {
     FileInfo,
 } from '@loginote/types'
 
-class ApiClient {
-    static BASE_URL = 'http://localhost:3001'
+const ipcRenderer = window.electron.ipcRenderer
 
+class ApiClient {
     static async openDirectory(
         directoryPath: string
     ): Promise<TotalProgress | null> {
-        return this.makeRequest('/open', 'POST', { directoryPath })
+        return ipcRenderer.invoke('open', directoryPath)
     }
 
     static async getVocabulary(word: string): Promise<Vocabulary | null> {
-        return this.makeRequest(`/vocabularies/${word}`, 'GET')
+        return ipcRenderer.invoke('getVocabularies', word)
     }
 
     static async postVocabulary(vocabulary: Vocabulary): Promise<void> {
-        return this.makeRequest('/vocabularies', 'POST', vocabulary)
+        return ipcRenderer.invoke('postVocabularies', vocabulary)
     }
 
     static async getSentence(sentenceId: SentenceId): Promise<Sentence | null> {
-        return this.makeRequest(`/sentences/${sentenceId}`, 'GET')
+        return ipcRenderer.invoke('getSentence', sentenceId)
     }
 
     static async getSentences(ids: SentenceId[]): Promise<Sentence[]> {
-        const queryParam = `ids=${ids.join(',')}`
-        return this.makeRequest(`/sentences?${queryParam}`, 'GET')
+        return ipcRenderer.invoke('getSentences', ids)
     }
 
     static async postSentence(sentence: Sentence) {
-        return this.makeRequest('/sentence', 'POST', sentence)
+        return ipcRenderer.invoke('postSentence', sentence)
     }
 
     static async getVocabularySet(setId: number) {
-        return this.makeRequest(`/vocabulary_sets/${setId}`, 'GET')
+        return ipcRenderer.invoke('getVocabularySet', setId)
     }
 
     static async postVocabularySet(vocabularySet: VocabularySet) {
-        return this.makeRequest('/vocabulary_sets', 'POST', vocabularySet)
+        return ipcRenderer.invoke('postVocabularySet', vocabularySet)
     }
 
     static async getDailyProgress(date: string): Promise<DailyProgress | null> {
-        return this.makeRequest(`/daily_progresses/${date}`, 'GET')
+        return ipcRenderer.invoke('getDailyProgress', date)
     }
 
     static async getVocabularyNode(word: string): Promise<VocabularyNode> {
-        return this.makeRequest(`/vocabulary_nodes/${word}`, 'GET')
+        return ipcRenderer.invoke('getVocabularyNode', word)
     }
 
     static async getTotalProgress(): Promise<TotalProgress | null> {
-        return this.makeRequest('/daily_progress', 'GET')
+        return ipcRenderer.invoke('getTotalProgress')
     }
 
     static async getFiles(): Promise<FileInfo[]> {
-        return this.makeRequest('/files', 'GET')
+        return ipcRenderer.invoke('getFiles')
     }
 
-    static async getFile(name: string): Promise<Blob | void> {
-        return fetch(`${this.BASE_URL}/file/${name}`, {
-            headers: {
-                'Content-Type': 'application/pdf',
-            },
-        })
-            .then(response => response.blob())
-            .catch(error => console.error('Error fetching PDF', error))
+    static async getFile(name: string): Promise<Buffer | void> {
+        return ipcRenderer.invoke('getFile', name)
     }
 
     static async getFileSentences(p: string): Promise<Sentence[]> {
-        return this.makeRequest(`/file_sentences/${p}`, 'GET')
+        return ipcRenderer.invoke('getFileSentences', p)
     }
 
     static async getFileExists(file: string): Promise<boolean> {
-        return this.makeRequest(`/exists/${file}`, 'GET')
+        return ipcRenderer.invoke('exists', file)
     }
 
     static async translate(sentence: string): Promise<string> {
-        return this.makeRequest(`/translate`, 'POST', { sentence })
+        return ipcRenderer.invoke('translate', sentence)
     }
 
     static async clean(sentence: string): Promise<string> {
-        return this.makeRequest(`/clean`, 'POST', { sentence })
+        return ipcRenderer.invoke('clean', sentence)
     }
 
     static async searchVocabulary(word: string): Promise<Vocabulary> {
-        return this.makeRequest(`/search/vocabulary/${word}`, 'GET')
+        return ipcRenderer.invoke('searchVocabulary', word)
     }
 
     static async getDateRandomSentence(date: string): Promise<SentenceId> {
-        return this.makeRequest(`/random_sentence/date/${date}`, 'GET')
+        return ipcRenderer.invoke('randomSentenceDate', date)
     }
 
     static async getFileRandomSentence(file: string): Promise<SentenceId> {
-        return this.makeRequest(`/random_sentence/file/${file}`, 'GET')
+        return ipcRenderer.invoke('randomSentenceFile', file)
     }
 
-    static async makeRequest<T>(
-        path: string,
-        method: string,
-        body: any = null
-    ): Promise<T> {
-        try {
-            console.log(`${this.BASE_URL}${path}}`)
-            const response = await fetch(`${this.BASE_URL}${path}`, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: body ? JSON.stringify(body) : null,
+    static async postFile(file: string): Promise<string | null> {
+        return ipcRenderer.invoke('postFile', file)
+    }
+
+    static async getFilePath(p: string): Promise<string> {
+        return ipcRenderer
+            .invoke('getFile', p)
+            .then((r: Buffer) => {
+                const blob = new Blob([r], { type: 'application/pdf' })
+                const fileUrl = URL.createObjectURL(blob)
+                return fileUrl
             })
-            return response.json()
-        } catch (error) {
-            console.error(`Error with the request to ${path}:`, error)
-            throw error
-        }
-    }
-
-    static getFilePath(p: string): string {
-        return `${this.BASE_URL}/file/${p}`
+            .catch((e: string) => {
+                console.error(e)
+                return ''
+            })
     }
 }
 

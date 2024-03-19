@@ -1,221 +1,122 @@
-import express from 'express'
-import cors from 'cors'
+import { ipcMain } from 'electron'
+import DataFetcher, { setAccessToken } from './data_fetcher'
 import DataManager from './data_manager'
-import multer from 'multer'
-import DataFetcher from './data_fetcher'
-import { Vocabulary } from '@loginote/types'
+import { SentenceId, Vocabulary } from '@loginote/types'
 import { cleanText2 } from './clean_text2'
-
-const app = express()
-const port = 3001
-
-app.use(express.json())
-app.use(
-    cors({
-        origin: 'http://localhost:3000',
-    })
-)
 
 const dataManager = new DataManager()
 const dataFetcher = new DataFetcher()
 
-const fileStorage = multer.diskStorage({
-    destination: (_req, _file, callback) => {
-        const path = dataManager.getUploadPath()
-        callback(null, path)
-    },
-    filename: (_req, file, callback) => {
-        const fileName = file.originalname
-        callback(null, fileName)
-    },
-})
-
-const upload = multer({ storage: fileStorage })
-
-app.post('/open', async (req, res) => {
-    const { directoryPath } = req.body
+ipcMain.handle('open', async (_e, directoryPath: string) => {
     const result = await dataManager.setNoteDirectory(directoryPath)
-
-    if (!result) {
-        res.status(500).json({
-            err_mst: `Cannot open the directory: ${directoryPath}`,
-        })
-    } else {
-        res.json(result)
-    }
+    return result
 })
 
-app.get('/vocabularies/:word', async (req, res) => {
-    const { word } = req.params
+ipcMain.handle('getVocabularies', async (_e, word: string) => {
     const vocabulary = await dataManager.getVocabulary(word)
-    vocabulary
-        ? res.json(vocabulary)
-        : res.status(404).json({ message: 'Vocabulary not found' })
+    return vocabulary
 })
 
-app.post('/vocabularies', async (req, res) => {
-    const success = await dataManager.postVocabulary(req.body)
-    success
-        ? res.status(201).json({ message: 'Vocabulary added successfully' })
-        : res.status(500).json({ message: 'Failed to add vocabulary' })
+ipcMain.handle('postVocabularies', async (_e, vocabulary) => {
+    const success = await dataManager.postVocabulary(vocabulary)
+    return success
 })
 
-app.get('/sentences/:sentenceId', async (req, res) => {
-    const { sentenceId } = req.params
+ipcMain.handle('getSentence', async (_e, sentenceId) => {
     const sentence = await dataManager.getSentence(Number(sentenceId))
-    sentence
-        ? res.json(sentence)
-        : res.status(404).json({ message: 'Sentence not found' })
+    return sentence
 })
 
-app.get('/sentences', async (req, res) => {
-    const ids = req.query.ids as string
+ipcMain.handle('getSentences', async (_e, ids: SentenceId[]) => {
+    if (ids.length == 0) return null
 
-    if (!ids) {
-        return res.status(400).json({ message: 'No sentence IDs provided' })
-    }
-
-    const sentenceIds: number[] = ids
-        .split(',')
-        .map(id => Number(id))
-        .filter(id => !isNaN(id) && Number.isFinite(id))
-
-    if (sentenceIds.length === 0) {
-        return res
-            .status(400)
-            .json({ message: 'Invalid sentence IDs provided' })
-    }
-
-    const sentences = await dataManager.getSentences(sentenceIds)
-
-    if (sentences && sentences.length > 0) {
-        res.json(sentences)
-    } else {
-        res.status(404).json({ message: 'Sentences not found' })
-    }
+    const sentences = await dataManager.getSentences(ids)
+    return sentences
 })
 
-app.post('/sentence', async (req, res) => {
-    const success = await dataManager.postSentence(req.body)
-    success
-        ? res.status(201).json({ message: 'Sentence added successfully' })
-        : res.status(500).json({ message: 'Failed to add sentence' })
+ipcMain.handle('postSentence', async (_e, sentence) => {
+    const success = await dataManager.postSentence(sentence)
+    return success
 })
 
-app.get('/vocabulary_sets/:setId', async (req, res) => {
-    const { setId } = req.params
+ipcMain.handle('getVocabularySet', async (_e, setId) => {
     const vocabularySet = await dataManager.getVocabularySet(Number(setId))
-    vocabularySet
-        ? res.json(vocabularySet)
-        : res.status(404).json({ message: 'Vocabulary set not found' })
+    return vocabularySet
 })
 
-app.post('/vocabulary_sets', async (req, res) => {
-    const success = await dataManager.postVocabularySet(req.body)
-    success
-        ? res.status(201).json({ message: 'Vocabulary set added successfully' })
-        : res.status(500).json({ message: 'Failed to add vocabulary set' })
+ipcMain.handle('postVocabularySet', async (_e, set) => {
+    const success = await dataManager.postVocabularySet(set)
+    return success
 })
 
-app.get('/daily_progresses/:date', async (req, res) => {
-    const { date } = req.params
+ipcMain.handle('getDailyProgress', async (_e, date) => {
     const dailyProgress = await dataManager.getDailyProgress(date)
-    dailyProgress
-        ? res.json(dailyProgress)
-        : res.status(404).json({ message: 'Daily progress not found' })
+    return dailyProgress
 })
 
-app.get('/daily_progress', async (_, res) => {
+ipcMain.handle('getTotalProgress', async _e => {
     const total = await dataManager.getTotalProgress()
-    total
-        ? res.json(total)
-        : res.status(404).json({ message: 'Daily progress not found' })
+    return total
 })
 
-app.get('/vocabulary_nodes/:word', async (req, res) => {
-    const { word } = req.params
+ipcMain.handle('getVocabularyNdoe', async (_e, word) => {
     const node = await dataManager.getVocabularyNode(word)
-    node
-        ? res.json(node)
-        : res.status(404).json({ message: 'Daily progress not found' })
+    return node
 })
 
-app.get('/file/:name', async (req, res) => {
-    const { name } = req.params
-    const stream = dataManager.getFile(name)
-    if (stream) {
-        res.setHeader('Content-Type', 'application/pdf')
-        stream.pipe(res)
-    } else {
-        res.status(400).send('no file')
-    }
+ipcMain.handle('getFile', async (_e, name) => {
+    const buffer = dataManager.getFile2(name)
+    return buffer
 })
 
-app.get('/files', async (_, res) => {
-    const files = await dataManager.getFiles()
-    res.json(files)
+ipcMain.handle('getFiles', async _e => {
+    return dataManager.getFiles()
 })
 
-app.post('/file', upload.single('file'), (req, res) => {
-    if (req.file) {
-        res.json(req.file.filename)
-    } else {
-        res.status(400).send('no file uploaded')
-    }
+ipcMain.handle('postFile', async (_e, filePath) => {
+    return dataManager.upload(filePath)
 })
 
-app.get('/exists/:name', async (req, res) => {
-    const { name } = req.params
-    const v = dataManager.getFileExists(name)
-    res.json(v)
+ipcMain.handle('exists', async (_e, fileName) => {
+    return dataManager.getFileExists(fileName)
 })
 
-app.get('/file_sentences/:name', async (req, res) => {
-    const { name } = req.params
-    const sentences = await dataManager.getFileSentences(name)
-    res.json(sentences)
+ipcMain.handle('getFileSentences', async (_e, name) => {
+    return await dataManager.getFileSentences(name)
 })
 
-app.post('/translate', async (req, res) => {
-    const { sentence } = req.body
+ipcMain.handle('translate', async (_e, sentence) => {
     const result = await dataFetcher.translate(sentence)
-    console.log('translate result' + result)
-    if (result) res.json(result)
-    else res.status(400).send('translate failed')
+    return result
 })
 
-app.get('/search/vocabulary/:word', async (req, res) => {
-    const { word } = req.params
+ipcMain.handle('searchVocabulary', async (_e, word) => {
     const v0 = await dataFetcher.fetchVocabulary0(word)
     const v1 = await dataFetcher.fetchVocabulary1(word)
     const result: Vocabulary = { vocabulary0: v0, vocabulary1: v1 }
-    res.json(result)
+    return result
 })
 
-app.get('/search/stardict/:word', async (req, res) => {
-    const { word } = req.params
-    const v1 = await dataFetcher.fetchVocabulary1(word)
-    res.json(v1)
+ipcMain.handle('searchStarDict', async (_e, word) => {
+    return await dataFetcher.fetchVocabulary1(word)
 })
 
-app.get('/random_sentence/date/:date', async (req, res) => {
-    const { date } = req.params
-    const result = await dataManager.getDateRandomSentenceId(date)
-    res.json(result)
+ipcMain.handle('randomSentenceDate', async (_e, date) => {
+    return dataManager.getDateRandomSentenceId(date)
 })
 
-app.get('/random_sentence/file/:file', async (req, res) => {
-    const {file} = req.params
-    const result = await dataManager.getFileRandomSentenceId(file)
-    res.json(result)
+ipcMain.handle('randomSentenceFile', async (_e, file) => {
+    return dataManager.getFileRandomSentenceId(file)
 })
 
-app.post('/clean', async (req, res) => {
-    const { sentence } = req.body
-    const result = cleanText2(sentence)
-    res.json(result)
+ipcMain.handle('clean', async (_e, sentence) => {
+    return cleanText2(sentence)
 })
 
-app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`)
+ipcMain.handle('getFilePath', async (_e, name) => {
+    return dataManager.getFilePath(name)
 })
+
+export function setBaiduToken(s: string) {
+    setAccessToken(s)
+}

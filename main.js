@@ -1,12 +1,11 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join, dirname } from 'path'
-import { fork } from 'child_process'
 import { fileURLToPath } from 'url'
 import isDev from 'electron-is-dev'
 import Store from 'electron-store'
 import fetch from 'node-fetch'
-import fs from 'fs'
-import FormData from 'form-data'
+
+import {setBaiduToken} from './server/dist/server.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -19,9 +18,9 @@ function createWindow() {
         width: 1200,
         height: 1000,
         webPreferences: {
-            nodeIntegration: false,
+            nodeIntegration: true,
             contextIsolation: true,
-            preload: join(__dirname, 'preload.js'),
+            preload: join(__dirname, 'preload.cjs'),
         },
     })
 
@@ -37,18 +36,11 @@ function createWindow() {
             serverProcess.kill()
         }
     })
-}
 
-let serverProcess = null
-function startServer() {
-    const serverPath = join(__dirname, 'server/dist/server.js')
-    serverProcess = fork(serverPath)
-    const keys = store.get('baiduApiKeys', '')
-    getAccessToken(keys.baiduApiKey, keys.baiduSecretKey)
+    mainWindow.webContents.openDevTools()
 }
 
 app.on('ready', () => {
-    startServer()
     createWindow()
 })
 
@@ -79,28 +71,28 @@ ipcMain.handle('open-directory-dialog', async () => {
     return result.filePaths[0]
 })
 
-ipcMain.handle('upload-file', async (_, filePath) => {
-    const file = fs.createReadStream(filePath)
-    const formData = new FormData()
-    formData.append('file', file)
+// ipcMain.handle('upload-file', async (_, filePath) => {
+//     const file = fs.createReadStream(filePath)
+//     const formData = new FormData()
+//     formData.append('file', file)
 
-    try {
-        const response = await fetch(`http://localhost:3001/file`, {
-            method: 'POST',
-            body: formData,
-            headers: formData.getHeaders(),
-        })
+//     try {
+//         const response = await fetch(`http://localhost:3001/file`, {
+//             method: 'POST',
+//             body: formData,
+//             headers: formData.getHeaders(),
+//         })
 
-        if (!response.ok) {
-            throw new Error(`Upload failed: ${response.statusText}`)
-        }
-        const result = await response.json()
-        return result
-    } catch (error) {
-        console.error('Error uploading file:', error)
-        throw error
-    }
-})
+//         if (!response.ok) {
+//             throw new Error(`Upload failed: ${response.statusText}`)
+//         }
+//         const result = await response.json()
+//         return result
+//     } catch (error) {
+//         console.error('Error uploading file:', error)
+//         throw error
+//     }
+// })
 
 ipcMain.handle('select-file-dialog', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
@@ -143,7 +135,7 @@ function getAccessToken(apiKey, secretKey) {
                 .then(r => {
                     store.set('accessToken', r.access_token)
                     console.log(r)
-                    serverProcess.send(r.access_token)
+                    setBaiduToken(r.access_token)
                 })
                 .catch(e => {
                     console.error(e)

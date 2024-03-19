@@ -12,6 +12,7 @@ const App: React.FC = () => {
                     path="/pdf-viewer/:filePath"
                     element={<PdfViewerWrapper />}
                 ></Route>
+                <Route path="*" element={<HomePage />}></Route>
             </Routes>
         </Router>
     )

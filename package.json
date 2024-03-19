@@ -13,12 +13,11 @@
         "appId": "com.loginote.app",
         "files": [
             "client/build/**/*",
-            "client/package.json",
             "node_modules/**/*",
             "server/dist/**/*",
-            "server/package.json",
-            "preload.js",
+            "preload.cjs",
             "main.js",
+            "package.json",
             "resources/dict/stardict.db",
             "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
             "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
@@ -44,7 +43,6 @@
         "make": "electron-forge make"
     },
     "dependencies": {
-        "electron-builder": "^24.13.3",
         "electron-is-dev": "^3.0.1",
         "electron-squirrel-startup": "^1.0.0",
         "electron-store": "^8.1.0",
@@ -53,6 +51,7 @@
         "ts-node": "^10.9.2"
     },
     "devDependencies": {
+        "electron-builder": "^24.13.3",
         "@electron-forge/cli": "^7.3.0",
         "@electron-forge/maker-deb": "^7.3.0",
         "@electron-forge/maker-rpm": "^7.3.0",

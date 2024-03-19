@@ -26,6 +26,7 @@ const SUB_DIRECTORIES = [
 ]
 
 class DataManager {
+    // abs path
     private _noteDirectory: string = ''
     private _loginote: RootLogiNote = {
         createdDate: '',
@@ -251,6 +252,33 @@ class DataManager {
             return fs.createReadStream(filePath)
         }
         return null
+    }
+
+    getFile2(name: string): Buffer | null {
+        const filePath = path.join(this._noteDirectory, 'files', `${name}`)
+        if (fs.existsSync(filePath)) {
+            return fs.readFileSync(filePath)
+        }
+        return null
+    }
+
+    getFilePath(name: string): string {
+        const filePath = path.join(this._noteDirectory, 'files', `${name}`)
+        return `file://${filePath}`
+    }
+
+    upload(filePath: string): string | null {
+        try {
+            const newFilePath = path.join(
+                this.getUploadPath(),
+                path.basename(filePath)
+            )
+            fs.copyFileSync(filePath, newFilePath)
+            return path.basename(filePath)
+        } catch (error) {
+            console.error(error)
+            return null
+        }
     }
 
     getFileExists(name: string): boolean {

@@ -44,12 +44,10 @@ const FileBrowser: React.FC = () => {
     const handleUploadClick = async () => {
         const path =
             await window.electron.ipcRenderer.invoke('select-file-dialog')
-        console.log(path)
-        const result = await window.electron.ipcRenderer.invoke(
-            'upload-file',
-            path
-        )
-        navigate(`/pdf-viewer/${encodeURIComponent(result)}`)
+        const result = await ApiClient.postFile(path)
+        if (result) {
+            navigate(`/pdf-viewer/${encodeURIComponent(result)}`)
+        }
     }
 
     return (
