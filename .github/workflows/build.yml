@@ -28,6 +28,7 @@ jobs:
 
     - name: Create builtin vocabulary database
       run: |
+        mkdir resources/dict
         cp resources/create_db.py.txt ECDICT/create_db.py
         python ECDICT/create_db.py
 
