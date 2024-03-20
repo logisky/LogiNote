@@ -1,4 +1,8 @@
 import stardict
+import os
 
 if __name__ == '__main__':
-    stardict.convert_dict('../resources/dict/stardict.db', './ecdict.csv')
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    target_db = os.path.join(script_dir, '../resources/dict/stardict.db')
+    source_db = os.path.join(script_dir, './ecdict.csv')
+    stardict.convert_dict(target_db, source_db)
