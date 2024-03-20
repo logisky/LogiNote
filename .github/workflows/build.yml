@@ -26,7 +26,7 @@ jobs:
 
     - name: Create builtin vocabulary database
       run: cp resources/create_db.py.txt ECDICT/create_db.py && \
-            python EDICT/create_db.py
+            python3 EDICT/create_db.py
 
     - name: Install dependencies
       run: npm install
