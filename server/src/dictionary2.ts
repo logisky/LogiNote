@@ -48,11 +48,3 @@ export async function getVocabulary(v: string): Promise<Vocabulary1 | null> {
         )
     })
 }
-
-// const db = new sqlite.Database('../../resources/dict/stardict', err => {
-//     if (err) {
-//         console.error('error opening database', err.message)
-//     } else {
-//         console.log('opened the database successfully')
-//     }
-// })
