@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@v4
       with:
@@ -34,12 +34,6 @@ jobs:
 
     - name: Install dependencies
       run: npm install
-
-    - name: Build the app
-      run: npm run build
-
-    - name: Package the app
-      run: npx electron-builder build
 
     - name: Build/release Electron app
       uses: samuelmeuli/action-electron-builder@v1
