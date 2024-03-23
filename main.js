@@ -33,6 +33,8 @@ function createWindow() {
     mainWindow.on('closed', () => {
         mainWindow = null
     })
+
+    mainWindow.webContents.openDevTools()
 }
 
 app.on('ready', () => {
@@ -76,9 +78,6 @@ ipcMain.handle('select-file-dialog', async () => {
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
-        if (serverProcess) {
-            serverProcess.kill()
-        }
         app.quit()
     }
 })

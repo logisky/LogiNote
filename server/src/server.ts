@@ -91,9 +91,9 @@ ipcMain.handle('translate', async (_e, sentence) => {
 })
 
 ipcMain.handle('searchVocabulary', async (_e, word) => {
-    const v0 = await dataFetcher.fetchVocabulary0(word)
+    // const v0 = await dataFetcher.fetchVocabulary0(word)
     const v1 = await dataFetcher.fetchVocabulary1(word)
-    const result: Vocabulary = { vocabulary0: v0, vocabulary1: v1 }
+    const result: Vocabulary = { vocabulary0: null, vocabulary1: v1 }
     return result
 })
 

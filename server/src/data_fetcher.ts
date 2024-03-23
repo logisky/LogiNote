@@ -1,4 +1,4 @@
-import { Vocabulary0, Vocabulary1 } from '@loginote/types'
+import { StarDictVocabulary, Vocabulary0, Vocabulary1 } from '@loginote/types'
 import {
     getVocabulary,
     hasIntializedDatabase,
@@ -39,7 +39,9 @@ export class DataFetcher {
         }
     }
 
-    public async fetchVocabulary1(s: string): Promise<Vocabulary1 | null> {
+    public async fetchVocabulary1(
+        s: string
+    ): Promise<StarDictVocabulary | null> {
         if (!hasIntializedDatabase()) {
             await initializeDatabase()
         }

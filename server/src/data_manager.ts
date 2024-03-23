@@ -261,12 +261,10 @@ export class DataManager {
 
     upload(filePath: string): string | null {
         try {
-            const newFilePath = path.join(
-                this.getUploadPath(),
-                path.basename(filePath)
-            )
+            const basename = path.basename(filePath)
+            const newFilePath = path.join(this.getUploadPath(), basename)
             fs.copyFileSync(filePath, newFilePath)
-            return path.basename(filePath)
+            return basename
         } catch (error) {
             console.error(error)
             return null
@@ -373,12 +371,12 @@ export class DataManager {
         const progress = this.getDailyProgress(date)
         return progress
             .then(p => {
-                if (!p) return -1
+                if (!p || p.sentences.length === 0) return -1
 
                 const sentences = shuffleArray(Array.from(p.sentences))
-                if (sentences.length === 0) return -1
-                this._dateRandomSentences.set(date, sentences.slice(1))
-                return sentences[0]
+                const result = sentences.shift() as number
+                this._dateRandomSentences.set(date, sentences)
+                return result
             })
             .catch(_e => {
                 return -1
@@ -388,20 +386,20 @@ export class DataManager {
     async getFileRandomSentenceId(file: string): Promise<SentenceId> {
         const sentences = this._fileRandomSenetences.get(file)
         if (sentences && sentences.length > 0) {
-            const result = sentences[0]
-            this._fileRandomSenetences.set(file, sentences.slice(1))
+            const result = sentences.shift() as number
+            this._fileRandomSenetences.set(file, sentences)
             return result
         }
 
         const newSensentences = this.getFileSentences(file)
         return newSensentences
             .then(f => {
-                if (!f) return -1
+                if (!f || f.length === 0) return -1
 
                 const sentences = shuffleArray(f).map(f => f.id)
-                if (sentences.length === 0) return -1
-                this._fileRandomSenetences.set(file, sentences.slice(1))
-                return sentences[0]
+                const result = sentences.shift() as number
+                this._fileRandomSenetences.set(file, sentences)
+                return result
             })
             .catch(_e => {
                 return -1

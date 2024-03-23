@@ -32,7 +32,7 @@ export interface FileNode {
 
 export interface Vocabulary {
     vocabulary0: Vocabulary0 | null
-    vocabulary1: Vocabulary1 | null
+    vocabulary1: StarDictVocabulary | null
 }
 
 // dictionaryapi
@@ -46,9 +46,25 @@ export interface Vocabulary0 {
 // stardict
 export interface Vocabulary1 {
     word: string
+    phonetic: string
     tag: string
+    definition: string
     translation: string
     exchange: string
+    bnc: number
+    frq: number
+}
+
+// A parsed and easy-handled format for frontend
+export interface StarDictVocabulary {
+    word: string
+    phonetic: string
+    definitions: string[]
+    translations: string[]
+    tags: string[]
+    exchange: string[]
+    bnc: number
+    frq: number
 }
 
 export interface Phonetic {

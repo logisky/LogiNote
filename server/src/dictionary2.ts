@@ -1,4 +1,4 @@
-import { Vocabulary1 } from '@loginote/types'
+import { StarDictVocabulary, Vocabulary1 } from '@loginote/types'
 import sqlite3 from 'sqlite3'
 
 export let db: sqlite3.Database | undefined
@@ -28,7 +28,10 @@ export function initializeDatabase(): Promise<sqlite3.Database> {
     })
 }
 
-export async function getVocabulary(v: string): Promise<Vocabulary1 | null> {
+export async function getVocabulary(
+    v: string,
+    depth = 0
+): Promise<StarDictVocabulary | null> {
     return new Promise((resolve, reject) => {
         if (!db) {
             console.log('Database not initialized')
@@ -42,9 +45,64 @@ export async function getVocabulary(v: string): Promise<Vocabulary1 | null> {
                     console.error('Error querying database:', err.message)
                     resolve(null)
                 }
+                // Lemma is found, returnning the lemma result.
+                // Should not involve the dead loop here, but to be safe, use the `depth`
+                // to prevent this situation. Since the dictionary is large
+                if (depth === 0 && row.exchange.includes('0:')) {
+                    const regex = /0:([a-zA-Z]+)/
+                    const matches = row.exchange.match(regex)
+                    if (matches) {
+                        return resolve(getVocabulary(matches[1], 1))
+                    }
+                }
+                if (!row) {
+                    console.log('no such vocabulary: ' + v)
+                    resolve(null)
+                }
                 console.log(row)
-                resolve(row)
+                const result = convertVocabulary(row)
+                resolve(result)
             }
         )
     })
+}
+
+function convertVocabulary(v: Vocabulary1): StarDictVocabulary {
+    const tags = v.tag ? v.tag.split(' ') : []
+    const definitions = v.definition
+        ? v.definition
+              .split('\n')
+              .filter(n => n)
+              .map(n => n.trim())
+        : []
+    const translations = v.translation
+        ? v.translation
+              .split('\n')
+              .filter(n => n)
+              .map(n => n.trim())
+        : []
+    return {
+        word: v.word,
+        phonetic: v.phonetic ?? '',
+        definitions,
+        translations,
+        bnc: v.bnc,
+        frq: v.frq,
+        exchange: parseExchange(v.exchange),
+        tags,
+    }
+}
+
+function parseExchange(s: string): string[] {
+    const result: string[] = []
+    const pairs = s.split('/')
+    for (const pair in pairs) {
+        if (!pair) continue
+        const keyValue = pair.split(':')
+        if (keyValue.length === 0 || !keyValue[1]) continue
+        // const key = keyValue[0].trim()
+        const value = keyValue[1].trim()
+        result.push(value)
+    }
+    return result
 }

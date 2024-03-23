@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ApiClient from '../core/api_client'
-import { Vocabulary } from '@loginote/types' // 假设这是你的类型定义
+import { StarDictVocabulary } from '@loginote/types'
 import {
     Button,
     Card,
@@ -8,13 +8,15 @@ import {
     Modal,
     Typography,
     makeStyles,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
     IconButton,
+    Box,
+    Chip,
+    ExpansionPanelDetails,
+    ExpansionPanel,
+    ExpansionPanelSummary,
     List,
     ListItem,
-    Box,
+    ListItemText,
 } from '@material-ui/core'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import CloseIcon from '@material-ui/icons/Close'
@@ -51,6 +53,15 @@ const useStyles = makeStyles(theme => ({
         maxWidth: 400,
         textAlign: 'center',
         margin: 'auto',
+    },
+    chipContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: '8px',
+        '& > *': {
+            margin: '4px',
+        },
     },
     subtleButton: {
         color: theme.palette.grey[600],
@@ -99,14 +110,17 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
     close,
 }) => {
     const classes = useStyles()
-    const [vocabulary, setVocabulary] = useState<Vocabulary | null>(null)
+    const [vocabulary, setVocabulary] = useState<StarDictVocabulary | null>(
+        null
+    )
     const [exporationOpen, setExporationOpen] = useState(false)
 
     useEffect(() => {
         if (word) {
             ApiClient.searchVocabulary(word)
                 .then(info => {
-                    setVocabulary(info)
+                    console.log(info.vocabulary1)
+                    setVocabulary(info.vocabulary1)
                 })
                 .catch(error =>
                     console.error('Failed to fetch word info:', error)
@@ -119,10 +133,7 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
             <Modal open={open} onClose={close} className={classes.modal}>
                 <Card className={classes.errorCard}>
                     <Typography variant="h6" color="error" gutterBottom>
-                        Unable to Load Vocabulary
-                    </Typography>
-                    <Typography variant="body1">
-                        Please check your network connection and try again.
+                        Wait...
                     </Typography>
                 </Card>
             </Modal>
@@ -130,7 +141,7 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
     }
 
     const handleSubmit = () => {
-        ApiClient.postVocabulary(vocabulary)
+        ApiClient.postVocabulary({ vocabulary0: null, vocabulary1: vocabulary })
         wordAddedToNote()
         close()
     }
@@ -145,87 +156,60 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
                 <Card className={classes.card} style={modalStyle}>
                     <CardContent className={classes.contentScroll}>
                         <Typography variant="h5" component="h2" gutterBottom>
-                            {vocabulary.vocabulary0?.word}
+                            {vocabulary.word}
                         </Typography>
-                        <Typography>
-                            {vocabulary.vocabulary1?.translation}
-                        </Typography>
-                        {vocabulary.vocabulary0?.phonetics.map(
-                            (phonetic, index) => (
-                                <div
-                                    key={index}
-                                    className={classes.phoneticText}
-                                >
-                                    <Typography color="textSecondary">
-                                        {phonetic.text}
-                                    </Typography>
-                                    {phonetic.audio && (
-                                        <IconButton aria-label="play">
-                                            <audio
-                                                src={phonetic.audio}
-                                                controls
-                                            />
-                                        </IconButton>
-                                    )}
-                                </div>
-                            )
+                        <Typography>[{vocabulary.phonetic}]</Typography>
+                        {vocabulary.translations && (
+                            <List>
+                                {vocabulary.translations.map((n, i) => (
+                                    <ListItem key={i}>
+                                        <ListItemText
+                                            primary={n}
+                                        ></ListItemText>
+                                    </ListItem>
+                                ))}
+                            </List>
                         )}
-                        {vocabulary.vocabulary0?.meanings.map(
-                            (meaning, index) => (
-                                <Accordion key={index}>
-                                    <AccordionSummary
-                                        expandIcon={<ExpandMoreIcon />}
-                                    >
-                                        <Typography>
-                                            {meaning.partOfSpeech}
+                        {vocabulary.exchange && (
+                            <Typography color="textSecondary">
+                                {vocabulary.exchange.join('\n')}
+                            </Typography>
+                        )}
+                        {vocabulary.tags && (
+                            <div className={classes.chipContainer}>
+                                {vocabulary.tags.map((tag, index) => (
+                                    <Chip
+                                        key={index}
+                                        label={tag}
+                                        variant="outlined"
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        <Typography
+                            color="textSecondary"
+                            variant="body2"
+                            gutterBottom
+                        >
+                            BNC: {vocabulary.bnc ?? 'unknown'}, FRQ:{' '}
+                            {vocabulary.frq ?? 'unknown'}
+                        </Typography>
+                        <ExpansionPanel>
+                            <ExpansionPanelSummary
+                                expandIcon={<ExpandMoreIcon />}
+                            >
+                                <Typography>Definitions</Typography>
+                            </ExpansionPanelSummary>
+                            <ExpansionPanelDetails>
+                                {vocabulary.definitions.map(
+                                    (definition, index) => (
+                                        <Typography key={index} paragraph>
+                                            {definition}
                                         </Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails>
-                                        {meaning.definitions.map(
-                                            (def, defIndex) => (
-                                                <div key={defIndex}>
-                                                    <Typography paragraph>
-                                                        {def.definition}
-                                                    </Typography>
-                                                    {def.example && (
-                                                        <Typography
-                                                            paragraph
-                                                        >{`Example: ${def.example}`}</Typography>
-                                                    )}
-                                                    {def.synonyms.length >
-                                                        0 && (
-                                                        <Typography
-                                                            paragraph
-                                                        >{`Synonyms: ${def.synonyms.join(', ')}`}</Typography>
-                                                    )}
-                                                    {def.antonyms.length >
-                                                        0 && (
-                                                        <Typography
-                                                            paragraph
-                                                        >{`Antonyms: ${def.antonyms.join(', ')}`}</Typography>
-                                                    )}
-                                                </div>
-                                            )
-                                        )}
-                                    </AccordionDetails>
-                                </Accordion>
-                            )
-                        )}
-                        {vocabulary.vocabulary0 &&
-                            vocabulary.vocabulary0.spelledLike.length > 0 && (
-                                <List className={classes.spelledLikeList}>
-                                    <Typography variant="subtitle1">
-                                        Similar Spellings:
-                                    </Typography>
-                                    {vocabulary.vocabulary0?.spelledLike.map(
-                                        (word, index) => (
-                                            <ListItem key={index}>
-                                                {word}
-                                            </ListItem>
-                                        )
-                                    )}
-                                </List>
-                            )}
+                                    )
+                                )}
+                            </ExpansionPanelDetails>
+                        </ExpansionPanel>
                         <Button
                             className={classes.subtleButton}
                             onClick={() => setExporationOpen(true)}
