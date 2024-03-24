@@ -255,6 +255,10 @@ export class DataManager {
 
     getFilePath(name: string): string {
         const filePath = path.join(this._noteDirectory, 'files', `${name}`)
+
+        if (process.platform === 'win32')
+            return `file:///${filePath.replace(/\\/g, '/')}`
+
         return `file://${filePath}`
     }
 
