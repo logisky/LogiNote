@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "@loginote/types": "^1.0.0",
-    "simple-spellchecker": "^1.0.2",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
   },

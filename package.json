@@ -35,14 +35,12 @@
         "includeSubNodeModules": false
     },
     "scripts": {
+        "prebuild": "cp resources/create_db.py.txt ECDICT/create_db.py && python3 ECDICT/create_db.py",
         "build": "npm run build --workspaces",
         "test": "npm run test --workspaces",
         "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron main.js",
         "electron-pack": "npm run build && electron-builder --dir",
-        "postinstall": "npx electron-builder install-app-deps",
-        "start": "electron-forge start",
-        "package": "electron-forge package",
-        "make": "electron-forge make"
+        "postinstall": "npx electron-builder install-app-deps"
     },
     "dependencies": {
         "electron-is-dev": "^3.0.1",

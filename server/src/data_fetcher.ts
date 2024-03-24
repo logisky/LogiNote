@@ -18,7 +18,6 @@ export class DataFetcher {
 
     public async translate(text: string): Promise<string> {
         const url = `https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1?access_token=${ACCESS_TOKEN}`
-        console.log(url)
         try {
             const result = await fetch(url, {
                 method: 'POST',
@@ -29,9 +28,7 @@ export class DataFetcher {
                 }),
                 headers: { 'Content-type': 'application/json' },
             })
-            console.log(result.body)
-            const r: { result: any } = await result.json()
-            console.log(r)
+            const r: any = await result.json()
             return (r.result.trans_result[0].dst as string) ?? ''
         } catch (e) {
             console.error(e)
@@ -76,13 +73,12 @@ export class DataFetcher {
                 headers: { 'Content-type': 'application/json' },
             }
         )
-        console.log(resp)
         if (!resp.ok) {
             console.error(`Error fetching basic info: ${resp.statusText}`)
             return null
         }
 
-        const data: Vocabulary0[] = await resp.json()
+        const data: Vocabulary0[] = (await resp.json()) as Vocabulary0[]
         if (data.length === 0) return null
         return data[0] as Vocabulary0
     }
@@ -98,7 +94,7 @@ export class DataFetcher {
             console.error(`Error fetching synonyms: ${resp.statusText}`)
             return []
         }
-        const data: WordInfo[] = await resp.json()
+        const data: WordInfo[] = (await resp.json()) as WordInfo[]
         // The fist spelled like is itself
         return data.map(d => d.word).slice(1)
     }

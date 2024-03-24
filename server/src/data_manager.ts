@@ -75,7 +75,6 @@ export class DataManager {
     public async getFiles(): Promise<FileInfo[]> {
         try {
             const directoryPath = path.join(this._noteDirectory, 'files')
-            console.log(directoryPath)
             const files = await fsp.readdir(directoryPath)
             return files
                 .filter(f => f.endsWith('.pdf'))
@@ -452,7 +451,6 @@ export class DataManager {
     }
 
     async flushProgress(): Promise<boolean | null> {
-        console.log('writing:', this._todayProgress)
         const cleaned: DailyProgress = {
             date: this._todayProgress.date,
             newWords: Array.from(new Set(this._todayProgress.newWords)),

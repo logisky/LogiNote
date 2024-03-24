@@ -105,7 +105,6 @@ function getAccessToken(apiKey, secretKey) {
             v.json()
                 .then(r => {
                     store.set('accessToken', r.access_token)
-                    console.log(r)
                     setBaiduToken(r.access_token)
                 })
                 .catch(e => {

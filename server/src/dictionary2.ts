@@ -18,7 +18,6 @@ export function initializeDatabase(): Promise<sqlite3.Database> {
                         console.error('error opening database', err.message)
                         reject(err)
                     } else {
-                        console.log('Database connected')
                         db = dictDb
                         resolve(dictDb)
                     }
@@ -34,7 +33,7 @@ export async function getVocabulary(
 ): Promise<StarDictVocabulary | null> {
     return new Promise((resolve, reject) => {
         if (!db) {
-            console.log('Database not initialized')
+            console.error('Database not initialized')
             return reject('Database not initialized')
         }
         db.get(
@@ -48,7 +47,12 @@ export async function getVocabulary(
                 // Lemma is found, returnning the lemma result.
                 // Should not involve the dead loop here, but to be safe, use the `depth`
                 // to prevent this situation. Since the dictionary is large
-                if (depth === 0 && row.exchange.includes('0:')) {
+                if (
+                    depth === 0 &&
+                    row &&
+                    row.exchange &&
+                    row.exchange.includes('0:')
+                ) {
                     const regex = /0:([a-zA-Z]+)/
                     const matches = row.exchange.match(regex)
                     if (matches) {
@@ -59,7 +63,6 @@ export async function getVocabulary(
                     console.log('no such vocabulary: ' + v)
                     resolve(null)
                 }
-                console.log(row)
                 const result = convertVocabulary(row)
                 resolve(result)
             }

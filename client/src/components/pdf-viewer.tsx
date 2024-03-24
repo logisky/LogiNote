@@ -57,7 +57,12 @@ const HighlightActionComponent: React.FC<HighlightSentenceViewerProps> = ({
     const { setActiveTab, setHighlightData } = useNotifierContext()
 
     useEffect(() => {
-        setHighlightData({ fileName, data, sentence, onChange: onChange })
+        // Get selected text from window.getSelection() directly.
+        // From what I saw, this text should be more accurate than
+        // the text got from the highlight extension in the `react-pdf-viewer`
+        const selected = getSelectedText()
+        const s = selected.trim() === '' ? sentence : selected
+        setHighlightData({ fileName, data, sentence: s, onChange: onChange })
         setActiveTab('highlights')
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fileName, data, sentence, setHighlightData, setActiveTab])
@@ -94,7 +99,6 @@ const PdfViewer: React.FC = () => {
                 data={props.highlightAreas}
                 sentence={props.selectedText}
                 onChange={(sentence: Sentence) => {
-                    // console.log(sentence) console.log([...sentences, sentence])
                     setSentences([...sentences, sentence])
                     setActiveTab('notes')
                     props.cancel()
@@ -180,6 +184,10 @@ const PdfViewerWrapper: React.FC = () => {
             <PdfViewer></PdfViewer>
         </PageNotifier>
     )
+}
+
+function getSelectedText(): string {
+    return window.getSelection()?.toString() ?? ''
 }
 
 export default PdfViewerWrapper

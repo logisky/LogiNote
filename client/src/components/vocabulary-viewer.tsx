@@ -119,7 +119,6 @@ const VocabularyViewer: React.FC<VocabularyViewerProps> = ({
         if (word) {
             ApiClient.searchVocabulary(word)
                 .then(info => {
-                    console.log(info.vocabulary1)
                     setVocabulary(info.vocabulary1)
                 })
                 .catch(error =>

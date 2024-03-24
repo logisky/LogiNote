@@ -87,7 +87,13 @@ const HighlightSentenceViewer: React.FC<HighlightSentenceViewerProps> = ({
         setEditedSentence(value)
         const words = value
             .split(' ')
-            .map(s => s.trim())
+            .map(s => {
+                const t = s.trim()
+                if (t.endsWith(',') || t.endsWith('.')) {
+                    return t.slice(0, -1)
+                }
+                return t
+            })
             .filter(s => s !== '')
         setWords(words)
         setSelectedWord(null)
