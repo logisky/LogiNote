@@ -10,7 +10,8 @@ import {
     Vocabulary,
     FileNode,
 } from '@loginote/types'
-import fs, { ReadStream } from 'fs'
+import fs from 'fs'
+import { URL } from 'url'
 import fsp from 'fs/promises'
 import path from 'path'
 
@@ -256,10 +257,9 @@ export class DataManager {
     getFilePath(name: string): string {
         const filePath = path.join(this._noteDirectory, 'files', `${name}`)
 
-        if (process.platform === 'win32')
-            return `file:///${filePath.replace(/\\/g, '/')}`
+        const fileURL = new URL(`file://${filePath}`)
 
-        return `file://${filePath}`
+        return fileURL.href
     }
 
     upload(filePath: string): string | null {
