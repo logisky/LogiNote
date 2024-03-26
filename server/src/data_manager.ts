@@ -105,7 +105,7 @@ export class DataManager {
 
             for (const file of files) {
                 const filePath = path.join(directoryPath, file)
-                const content = await fsp.readFile(filePath, 'utf8')
+                const content = fs.readFileSync(filePath, 'utf8')
                 const progress: DailyProgress = JSON.parse(content)
                 console.log(progress)
 

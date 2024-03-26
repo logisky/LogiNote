@@ -5,7 +5,7 @@ import isDev from 'electron-is-dev'
 import Store from 'electron-store'
 import fetch from 'node-fetch'
 
-import { setBaiduToken } from './server/dist/server.js'
+import { setBaiduToken, setIsDev } from './server/dist/server.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -34,7 +34,11 @@ function createWindow() {
         mainWindow = null
     })
 
-    mainWindow.webContents.openDevTools()
+    setIsDev(isDev)
+
+    if (isDev) {
+        mainWindow.webContents.openDevTools()
+    }
 }
 
 app.on('ready', () => {

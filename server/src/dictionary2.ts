@@ -1,5 +1,8 @@
 import { StarDictVocabulary, Vocabulary1 } from '@loginote/types'
+import path from 'path'
 import sqlite3 from 'sqlite3'
+
+import { isDev } from './lib'
 
 export let db: sqlite3.Database | undefined
 
@@ -11,18 +14,19 @@ export function initializeDatabase(): Promise<sqlite3.Database> {
     return new Promise((resolve, reject) => {
         import('sqlite3').then((sqlite3: any) => {
             const sqlite: sqlite3.sqlite3 = sqlite3.verbose()
-            const dictDb = new sqlite.Database(
-                './resources/dict/stardict.db',
-                err => {
-                    if (err) {
-                        console.error('error opening database', err.message)
-                        reject(err)
-                    } else {
-                        db = dictDb
-                        resolve(dictDb)
-                    }
+            const dbFile = isDev()
+                ? '../../resources/dict/stardict.db'
+                : '../../../resources/dict/stardict.db'
+            const dbPath = path.join(__dirname, dbFile)
+            const dictDb = new sqlite.Database(dbPath, err => {
+                if (err) {
+                    console.error('error opening database', err.message)
+                    reject(err)
+                } else {
+                    db = dictDb
+                    resolve(dictDb)
                 }
-            )
+            })
         })
     })
 }
@@ -103,7 +107,6 @@ function parseExchange(s: string): string[] {
         if (!pair) continue
         const keyValue = pair.split(':')
         if (keyValue.length === 0 || !keyValue[1]) continue
-        // const key = keyValue[0].trim()
         const value = keyValue[1].trim()
         result.push(value)
     }

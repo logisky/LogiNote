@@ -120,3 +120,5 @@ ipcMain.handle('getFilePath', async (_e, name) => {
 export function setBaiduToken(s: string) {
     setAccessToken(s)
 }
+
+export { setIsDev } from './lib'
