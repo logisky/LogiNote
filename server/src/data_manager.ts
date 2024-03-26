@@ -11,7 +11,7 @@ import {
     FileNode,
 } from '@loginote/types'
 import fs from 'fs'
-import { URL } from 'url'
+import { pathToFileURL } from 'url'
 import fsp from 'fs/promises'
 import path from 'path'
 
@@ -257,9 +257,7 @@ export class DataManager {
     getFilePath(name: string): string {
         const filePath = path.join(this._noteDirectory, 'files', `${name}`)
 
-        const fileURL = new URL(`file://${filePath}`)
-
-        return fileURL.href
+        return pathToFileURL(filePath).href
     }
 
     upload(filePath: string): string | null {
